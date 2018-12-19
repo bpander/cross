@@ -7,3 +7,11 @@ body {
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
 }
+
+.board {
+  border: 3px solid black;
+}
+
+.board__cell {
+  fill: white;
+}

@@ -1,11 +1,11 @@
 import React from 'react';
 
-import Grid from 'components/Grid';
+import Board from 'components/Board';
 
 class App extends React.Component {
   render() {
     return (
-      <Grid size={15} />
+      <Board size={15} />
     );
   }
 }
