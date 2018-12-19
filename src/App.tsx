@@ -5,7 +5,7 @@ import Grid from 'components/Grid';
 class App extends React.Component {
   render() {
     return (
-      <Grid />
+      <Grid size={15} />
     );
   }
 }
