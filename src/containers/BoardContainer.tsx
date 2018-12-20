@@ -2,6 +2,7 @@ import classNames from 'classnames';
 import React from 'react';
 import { connect } from 'react-redux';
 
+import { BLACK_SYMBOL } from 'config/global';
 import { ContainerProps } from 'containers/definitions/Containers';
 import * as board from 'redux-modules/board';
 import { times } from 'util/arrays';
@@ -11,24 +12,47 @@ const BOARD_WIDTH = 630;
 interface CellsProps {
   size: number;
   cellSize: number;
-  onCellClick: (n: number) => void;
+  grid: string[];
+  onCellChange: (pos: number) => void;
+  onCellFill: (value: string) => void;
   cursor: number | null;
 }
 
 const Cells: React.SFC<CellsProps> = props => (
   <g data-group="cells">
     {times(props.size ** 2, i => (
-      <rect
-        key={i}
-        x={(i % props.size) * props.cellSize}
-        y={Math.floor(i / props.size) * props.cellSize}
-        width={props.cellSize}
-        height={props.cellSize}
-        className={classNames('board__cell', {
-          'board__cell--cursor': i === props.cursor,
-        })}
-        onClick={() => props.onCellClick(i)}
-      />
+      <React.Fragment key={i}>
+        <rect
+          tabIndex={0}
+          x={(i % props.size) * props.cellSize}
+          y={Math.floor(i / props.size) * props.cellSize}
+          width={props.cellSize}
+          height={props.cellSize}
+          className={classNames('board__cell', {
+            'board__cell--cursor': i === props.cursor,
+            'board__cell--black': props.grid[i] === BLACK_SYMBOL,
+          })}
+          onKeyDown={e => {
+            if (e.key.match(/^[a-z]$/i) || e.key === BLACK_SYMBOL) {
+              props.onCellFill(e.key.toUpperCase());
+            } else if (e.key === 'Backspace') {
+              props.onCellFill('');
+            }
+          }}
+          onClick={() => props.onCellChange(i)}
+        />
+        {(props.grid[i] && props.grid[i] !== BLACK_SYMBOL) && (
+          <text
+            x={(i % props.size) * props.cellSize + (props.cellSize / 2)}
+            y={Math.floor(i / props.size) * props.cellSize + props.cellSize - (props.cellSize * 0.1)}
+            textAnchor="middle"
+            alignmentBaseline="baseline"
+            fontSize={props.cellSize * 0.8}
+          >
+            {props.grid[i]}
+          </text>
+        )}
+      </React.Fragment>
     ))}
   </g>
 );
@@ -78,8 +102,10 @@ const BoardContainer: React.SFC<ContainerProps> = props => {
     >
       <Cells
         size={props.board.size}
+        grid={props.board.grid}
         cellSize={cellSize}
-        onCellClick={i => props.dispatch(board.actions.setCursor(i))}
+        onCellChange={i => props.dispatch(board.actions.setCursor(i))}
+        onCellFill={value => props.dispatch(board.actions.setValueAtCursor(value))}
         cursor={props.board.cursor}
       />
       <Grid size={props.board.size} cellSize={cellSize} />

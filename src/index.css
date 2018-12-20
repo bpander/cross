@@ -19,3 +19,7 @@ body {
 .board__cell--cursor {
   fill: #ffda00;
 }
+
+.board__cell--black {
+  fill: #000000;
+}
