@@ -2,7 +2,7 @@ import { BLACK_SYMBOL } from 'config/global';
 import createReducer from 'lib/createReducer';
 import BoardState from 'redux-modules/definitions/BoardState';
 import RootThunkAction from 'redux-modules/definitions/RootThunkAction';
-import { replaceIndex } from 'util/arrays';
+import { replaceIndex, times } from 'util/arrays';
 
 const initialState: BoardState = {
   author: null,
@@ -12,7 +12,7 @@ const initialState: BoardState = {
     across: [],
     down: [],
   },
-  grid: [],
+  grid: times(15 ** 2, () => ''),
   cursor: null,
   isCursorAcross: true,
 };

@@ -21,9 +21,19 @@ interface CellsProps {
 const Cells: React.SFC<CellsProps> = props => (
   <g data-group="cells">
     {times(props.size ** 2, i => (
-      <React.Fragment key={i}>
+      <g
+        tabIndex={0}
+        key={i}
+        onKeyDown={e => {
+          if (e.key.match(/^[a-z]$/i) || e.key === BLACK_SYMBOL) {
+            props.onCellFill(e.key.toUpperCase());
+          } else if (e.key === 'Backspace') {
+            props.onCellFill('');
+          }
+        }}
+        onClick={() => props.onCellChange(i)}
+      >
         <rect
-          tabIndex={0}
           x={(i % props.size) * props.cellSize}
           y={Math.floor(i / props.size) * props.cellSize}
           width={props.cellSize}
@@ -32,14 +42,6 @@ const Cells: React.SFC<CellsProps> = props => (
             'board__cell--cursor': i === props.cursor,
             'board__cell--black': props.grid[i] === BLACK_SYMBOL,
           })}
-          onKeyDown={e => {
-            if (e.key.match(/^[a-z]$/i) || e.key === BLACK_SYMBOL) {
-              props.onCellFill(e.key.toUpperCase());
-            } else if (e.key === 'Backspace') {
-              props.onCellFill('');
-            }
-          }}
-          onClick={() => props.onCellChange(i)}
         />
         {(props.grid[i] && props.grid[i] !== BLACK_SYMBOL) && (
           <text
@@ -52,7 +54,7 @@ const Cells: React.SFC<CellsProps> = props => (
             {props.grid[i]}
           </text>
         )}
-      </React.Fragment>
+      </g>
     ))}
   </g>
 );

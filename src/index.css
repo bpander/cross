@@ -10,6 +10,7 @@ body {
 
 .board {
   border: 3px solid black;
+  user-select: none;
 }
 
 .board__cell {
