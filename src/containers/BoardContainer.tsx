@@ -1,14 +1,10 @@
 import React from 'react';
+import { connect } from 'react-redux';
 
+import { ContainerProps } from 'containers/definitions/Containers';
 import { times } from 'util/arrays';
 
-type BoardSizeOption = 15 | 21;
-
-interface BoardProps {
-  size: BoardSizeOption;
-}
-
-const BOARD_SIZE = 630;
+const BOARD_WIDTH = 630;
 
 interface CellsProps {
   size: number;
@@ -31,7 +27,7 @@ const Cells: React.SFC<CellsProps> = props => (
 );
 
 interface GridProps {
-  size: BoardSizeOption;
+  size: number;
   cellSize: number;
 }
 
@@ -63,20 +59,20 @@ class Grid extends React.PureComponent<GridProps> {
   }
 }
 
-const Board: React.SFC<BoardProps> = props => {
-  const cellSize = BOARD_SIZE / props.size;
+const BoardContainer: React.SFC<ContainerProps> = props => {
+  const cellSize = BOARD_WIDTH / props.board.size;
 
   return (
     <svg
-      width={BOARD_SIZE}
-      height={BOARD_SIZE}
-      viewBox={`0 0 ${BOARD_SIZE} ${BOARD_SIZE}`}
+      width={BOARD_WIDTH}
+      height={BOARD_WIDTH}
+      viewBox={`0 0 ${BOARD_WIDTH} ${BOARD_WIDTH}`}
       className="board"
     >
-      <Cells size={props.size} cellSize={cellSize} />
-      <Grid size={props.size} cellSize={cellSize} />
+      <Cells size={props.board.size} cellSize={cellSize} />
+      <Grid size={props.board.size} cellSize={cellSize} />
     </svg>
   );
 };
 
-export default Board;
+export default connect(state => state)(BoardContainer);

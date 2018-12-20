@@ -1,11 +1,12 @@
 import React from 'react';
+import { Route } from 'react-router';
 
-import Board from 'components/Board';
+import BoardContainer from 'containers/BoardContainer';
 
 class App extends React.Component {
   render() {
     return (
-      <Board size={15} />
+      <Route component={BoardContainer} />
     );
   }
 }

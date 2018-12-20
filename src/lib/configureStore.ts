@@ -1,17 +1,15 @@
-import { AnyAction, applyMiddleware, compose, createStore, Store, StoreEnhancer } from 'redux';
+import { routerMiddleware } from 'connected-react-router';
+import { History } from 'history';
+import { AnyAction, applyMiddleware, compose, createStore, Reducer, Store, StoreEnhancer } from 'redux';
 import persistState, { mergePersistedState } from 'redux-localstorage';
 import filter from 'redux-localstorage-filter';
 import adapter from 'redux-localstorage/lib/adapters/localStorage';
 import thunk from 'redux-thunk';
 
-import { Reducer } from 'react';
 import RootState from 'redux-modules/definitions/RootState';
-import { rootReducer } from 'redux-modules/root';
+import { createRootReducer } from 'redux-modules/root';
 
-const reducer = mergePersistedState()(rootReducer) as Reducer<RootState | undefined, AnyAction>;
-const storage = filter([ 'account' ])(adapter(window.localStorage));
-
-export default (): Store<RootState> => {
+export default (history: History): Store<RootState> => {
   let composeEnhancers = compose;
   /* istanbul ignore next */
   if (process.env.NODE_ENV === 'development') {
@@ -20,9 +18,12 @@ export default (): Store<RootState> => {
     composeEnhancers = (window as any).__REDUX_DEVTOOLS_EXTENSION_COMPOSE__ || compose;
   }
 
+  const rootReducer = createRootReducer(history);
+  const reducer = mergePersistedState()(rootReducer) as Reducer<RootState | undefined, AnyAction>;
+  const storage = filter([ 'board' ])(adapter(window.localStorage));
   const enhancer: StoreEnhancer = composeEnhancers(
     applyMiddleware(
-      // routerMiddleware(history),
+      routerMiddleware(history),
       thunk,
     ),
     persistState(storage, 'cross'),
