@@ -3,6 +3,7 @@ import createReducer from 'lib/createReducer';
 import BoardState from 'redux-modules/definitions/BoardState';
 import RootThunkAction from 'redux-modules/definitions/RootThunkAction';
 import { replaceIndex, times } from 'util/arrays';
+import { getIndex, getXY, reflectXY } from 'util/grid2Ds';
 
 const initialState: BoardState = {
   author: null,
@@ -32,12 +33,18 @@ export const actions = {
 
   setValueAtCursor: (value: string): RootThunkAction<void> => (dispatch, getState) => {
     const { board } = getState();
-    if (!board.cursor) {
+    if (board.cursor === null) {
       return;
     }
     if (value === BLACK_SYMBOL) {
       const newValue = (board.grid[board.cursor] === BLACK_SYMBOL) ? '' : value;
-      dispatch(update({ grid: replaceIndex(board.grid, board.cursor, newValue) }));
+      const mid = (board.size - 1) / 2;
+      const grid = replaceIndex(
+        replaceIndex(board.grid, board.cursor, newValue),
+        getIndex(board.size, reflectXY(getXY(board.size, board.cursor), [ mid, mid ])),
+        newValue,
+      );
+      dispatch(update({ grid }));
       return;
     }
     const cursorDirection = (value === '') ? -1 : 1;
