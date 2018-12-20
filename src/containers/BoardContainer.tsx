@@ -1,7 +1,9 @@
+import classNames from 'classnames';
 import React from 'react';
 import { connect } from 'react-redux';
 
 import { ContainerProps } from 'containers/definitions/Containers';
+import * as board from 'redux-modules/board';
 import { times } from 'util/arrays';
 
 const BOARD_WIDTH = 630;
@@ -9,6 +11,8 @@ const BOARD_WIDTH = 630;
 interface CellsProps {
   size: number;
   cellSize: number;
+  onCellClick: (n: number) => void;
+  cursor: number | null;
 }
 
 const Cells: React.SFC<CellsProps> = props => (
@@ -20,7 +24,10 @@ const Cells: React.SFC<CellsProps> = props => (
         y={Math.floor(i / props.size) * props.cellSize}
         width={props.cellSize}
         height={props.cellSize}
-        className="board__cell"
+        className={classNames('board__cell', {
+          'board__cell--cursor': i === props.cursor,
+        })}
+        onClick={() => props.onCellClick(i)}
       />
     ))}
   </g>
@@ -69,7 +76,12 @@ const BoardContainer: React.SFC<ContainerProps> = props => {
       viewBox={`0 0 ${BOARD_WIDTH} ${BOARD_WIDTH}`}
       className="board"
     >
-      <Cells size={props.board.size} cellSize={cellSize} />
+      <Cells
+        size={props.board.size}
+        cellSize={cellSize}
+        onCellClick={i => props.dispatch(board.actions.setCursor(i))}
+        cursor={props.board.cursor}
+      />
       <Grid size={props.board.size} cellSize={cellSize} />
     </svg>
   );

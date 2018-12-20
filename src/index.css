@@ -15,3 +15,7 @@ body {
 .board__cell {
   fill: white;
 }
+
+.board__cell--cursor {
+  fill: #ffda00;
+}

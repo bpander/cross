@@ -1,5 +1,6 @@
 import createReducer from 'lib/createReducer';
 import BoardState from 'redux-modules/definitions/BoardState';
+import RootThunkAction from 'redux-modules/definitions/RootThunkAction';
 
 const initialState: BoardState = {
   author: null,
@@ -11,8 +12,19 @@ const initialState: BoardState = {
   },
   grid: [],
   cursor: null,
-  cursorDirection: 'across',
+  isCursorAcross: true,
 };
 
-const { reducer } = createReducer<BoardState>('board/UPDATE', initialState);
+const { reducer, update } = createReducer<BoardState>('board/UPDATE', initialState);
 export const boardReducer = reducer;
+
+export const actions = {
+  setCursor: (cursor: number | null): RootThunkAction<void> => (dispatch, getState) => {
+    const { board } = getState();
+    let { isCursorAcross } = board;
+    if (board.cursor === cursor) {
+      isCursorAcross = !isCursorAcross;
+    }
+    dispatch(update({ cursor, isCursorAcross }));
+  },
+};

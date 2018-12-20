@@ -9,5 +9,5 @@ export default interface BoardState {
   };
   grid: string[];
   cursor: number | null;
-  cursorDirection: 'across' | 'down';
+  isCursorAcross: boolean;
 }
