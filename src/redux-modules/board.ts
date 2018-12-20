@@ -7,7 +7,7 @@ import { replaceIndex, times } from 'util/arrays';
 const initialState: BoardState = {
   author: null,
   title: null,
-  size: 15,
+  size: 15, // TODO: Maybe this could be derived from sqrt(grid.length)?
   clues: {
     across: [],
     down: [],
@@ -40,9 +40,11 @@ export const actions = {
       dispatch(update({ grid: replaceIndex(board.grid, board.cursor, newValue) }));
       return;
     }
-    // TODO: Cursor movement
+    const cursorDirection = (value === '') ? -1 : 1;
+    const stepSize = (board.isCursorAcross) ? 1 : board.size;
     dispatch(update({
       grid: replaceIndex(board.grid, board.cursor, value),
+      cursor: board.cursor + (cursorDirection * stepSize),
     }));
   },
 };
