@@ -55,3 +55,32 @@ export const actions = {
     }));
   },
 };
+
+const hasBorderAbove = (board: BoardState, cell: number): boolean => {
+  return cell < board.size || board.grid[cell - board.size] === BLACK_SYMBOL;
+};
+
+const hasBorderLeft = (board: BoardState, cell: number): boolean => {
+  return cell % board.size === 0 || board.grid[cell - 1] === BLACK_SYMBOL;
+};
+
+export const selectors = {
+
+  getClueMap: (board: BoardState): { [cell: string]: number } => {
+    const clueMap: { [cell: string]: number } = {};
+    let n = 1;
+
+    board.grid.forEach((value, i) => {
+      if (value === BLACK_SYMBOL) {
+        return;
+      }
+      if (hasBorderAbove(board, i) || hasBorderLeft(board, i)) {
+        clueMap[i] = n;
+        n++;
+      }
+    });
+
+    return clueMap;
+  },
+
+};

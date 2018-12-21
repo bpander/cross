@@ -17,42 +17,63 @@ class CellsContainer extends React.Component<ContainerProps> {
     }
   };
 
+  renderCell(cell: number) {
+    const { board } = this.props;
+    const cellSize = BOARD_WIDTH / board.size;
+    const x = (cell % board.size) * cellSize;
+    const y = Math.floor(cell / board.size) * cellSize;
+    const clueMap = boardModule.selectors.getClueMap(board);
+
+    return (
+      <g
+        tabIndex={0}
+        key={cell}
+        onKeyDown={this.onCellKeyDown}
+        onClick={() => this.props.dispatch(boardModule.actions.setCursor(cell))}
+      >
+        <rect
+          x={x}
+          y={y}
+          width={cellSize}
+          height={cellSize}
+          className={classNames('board__cell', {
+            'board__cell--cursor': cell === board.cursor,
+            'board__cell--black': board.grid[cell] === BLACK_SYMBOL,
+          })}
+        />
+        {(clueMap[cell]) && (
+          <text
+            x={x + cellSize * 0.05}
+            y={y + cellSize * 0.05}
+            alignmentBaseline="hanging"
+            fontSize={cellSize * 0.3}
+          >
+            {clueMap[cell]}
+          </text>
+        )}
+        {(board.grid[cell] && board.grid[cell] !== BLACK_SYMBOL) && (
+          <text
+            x={x + (cellSize / 2)}
+            y={y + cellSize - (cellSize * 0.1)}
+            textAnchor="middle"
+            alignmentBaseline="baseline"
+            fontSize={cellSize * 0.8}
+          >
+            {board.grid[cell]}
+          </text>
+        )}
+      </g>
+    );
+  }
+
   render() {
     const { board } = this.props;
     const cellSize = BOARD_WIDTH / board.size;
+    const clueMap = boardModule.selectors.getClueMap(board);
 
     return (
       <g data-group="cells">
-        {times(board.size ** 2, i => (
-          <g
-            tabIndex={0}
-            key={i}
-            onKeyDown={this.onCellKeyDown}
-            onClick={() => this.props.dispatch(boardModule.actions.setCursor(i))}
-          >
-            <rect
-              x={(i % board.size) * cellSize}
-              y={Math.floor(i / board.size) * cellSize}
-              width={cellSize}
-              height={cellSize}
-              className={classNames('board__cell', {
-                'board__cell--cursor': i === board.cursor,
-                'board__cell--black': board.grid[i] === BLACK_SYMBOL,
-              })}
-            />
-            {(board.grid[i] && board.grid[i] !== BLACK_SYMBOL) && (
-              <text
-                x={(i % board.size) * cellSize + (cellSize / 2)}
-                y={Math.floor(i / board.size) * cellSize + cellSize - (cellSize * 0.1)}
-                textAnchor="middle"
-                alignmentBaseline="baseline"
-                fontSize={cellSize * 0.8}
-              >
-                {board.grid[i]}
-              </text>
-            )}
-          </g>
-        ))}
+        {times(board.size ** 2, i => this.renderCell(i))}
       </g>
     );
   }
