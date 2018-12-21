@@ -1,5 +1,6 @@
 import { BLACK_SYMBOL } from 'config/global';
 import createReducer from 'lib/createReducer';
+import { Direction, toggleDirection } from 'lib/direction';
 import BoardState from 'redux-modules/definitions/BoardState';
 import RootThunkAction from 'redux-modules/definitions/RootThunkAction';
 import { replaceIndex, times } from 'util/arrays';
@@ -15,7 +16,7 @@ const initialState: BoardState = {
   },
   grid: times(15 ** 2, () => ''),
   cursor: null,
-  isCursorAcross: true,
+  direction: Direction.Across,
 };
 
 const { reducer, update } = createReducer<BoardState>('board/UPDATE', initialState);
@@ -24,11 +25,8 @@ export const boardReducer = reducer;
 export const actions = {
   setCursor: (cursor: number | null): RootThunkAction<void> => (dispatch, getState) => {
     const { board } = getState();
-    let { isCursorAcross } = board;
-    if (board.cursor === cursor) {
-      isCursorAcross = !isCursorAcross;
-    }
-    dispatch(update({ cursor, isCursorAcross }));
+    const direction = toggleDirection(board.direction, board.cursor === cursor);
+    dispatch(update({ cursor, direction }));
   },
 
   setValueAtCursor: (value: string): RootThunkAction<void> => (dispatch, getState) => {
@@ -48,7 +46,7 @@ export const actions = {
       return;
     }
     const cursorDirection = (value === '') ? -1 : 1;
-    const stepSize = (board.isCursorAcross) ? 1 : board.size;
+    const stepSize = (board.direction === Direction.Across) ? 1 : board.size;
     dispatch(update({
       grid: replaceIndex(board.grid, board.cursor, value),
       cursor: board.cursor + (cursorDirection * stepSize),

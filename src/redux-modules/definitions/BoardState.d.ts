@@ -1,3 +1,4 @@
+import { Direction } from 'lib/direction';
 
 export default interface BoardState {
   author: string | null;
@@ -9,5 +10,5 @@ export default interface BoardState {
   };
   grid: string[];
   cursor: number | null;
-  isCursorAcross: boolean;
+  direction: Direction;
 }
