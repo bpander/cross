@@ -1,4 +1,4 @@
-import { Direction } from 'lib/direction';
+import { Direction } from 'lib/crossword';
 
 export default interface BoardState {
   author: string | null;
