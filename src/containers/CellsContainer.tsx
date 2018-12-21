@@ -68,8 +68,6 @@ class CellsContainer extends React.Component<ContainerProps> {
 
   render() {
     const { board } = this.props;
-    const cellSize = BOARD_WIDTH / board.size;
-    const clueMap = boardModule.selectors.getClueMap(board);
 
     return (
       <g data-group="cells">
