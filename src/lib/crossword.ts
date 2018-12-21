@@ -1,6 +1,6 @@
 import { BLACK_SYMBOL } from 'config/global';
 import Dictionary from 'definitions/Dictionary';
-import { mapValues } from 'util/objects';
+import { invert, mapValues } from 'util/objects';
 
 export enum Direction {
   Across = 'A',
@@ -16,8 +16,8 @@ interface AnswerCellsMap {
   [clue: number]: number[];
 }
 
-interface ClueLabelCellMap {
-  [clue: number]: number;
+export interface CellToClueMap {
+  [cell: number]: number;
 }
 
 interface AnswerMap {
@@ -97,12 +97,13 @@ export const getAnswerMap = (board: Board): AnswerMap => {
   };
 };
 
-export const getClueLabelCellMap = (answerMap: AnswerMap): ClueLabelCellMap => {
+export const getCellToClueMap = (answerMap: AnswerMap): CellToClueMap => {
   const dedupedAnswerCellsMap = { ...answerMap[Direction.Across], ...answerMap[Direction.Down] };
-  const clueLabelCellMap: ClueLabelCellMap = mapValues<number[], number>(
+  const clueToCellMap = mapValues<number[], number>(
     dedupedAnswerCellsMap,
     cells => cells[0],
   );
+  const cellToClueMap = mapValues(invert(clueToCellMap), Number);
 
-  return clueLabelCellMap;
+  return cellToClueMap;
 };

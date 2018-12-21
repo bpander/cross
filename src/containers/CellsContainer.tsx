@@ -4,7 +4,7 @@ import { connect } from 'react-redux';
 
 import { BLACK_SYMBOL, BOARD_WIDTH } from 'config/global';
 import { ContainerProps } from 'containers/definitions/Containers';
-import Dictionary from 'definitions/Dictionary';
+import { CellToClueMap, getAnswerMap, getCellToClueMap } from 'lib/crossword';
 import * as boardModule from 'redux-modules/board';
 import { times } from 'util/arrays';
 
@@ -18,14 +18,11 @@ class CellsContainer extends React.Component<ContainerProps> {
     }
   };
 
-  renderCell(cell: number) {
+  renderCell(cell: number, cellToClueMap: CellToClueMap) {
     const { board } = this.props;
     const cellSize = BOARD_WIDTH / board.size;
     const x = (cell % board.size) * cellSize;
     const y = Math.floor(cell / board.size) * cellSize;
-    // const answerMap = boardModule.selectors.getAnswerMap(board);
-    // const clueMap = boardModule.selectors.getClueMap(board);
-    const clueMap: Dictionary<number> = {};
 
     return (
       <g
@@ -44,14 +41,14 @@ class CellsContainer extends React.Component<ContainerProps> {
             'board__cell--black': board.grid[cell] === BLACK_SYMBOL,
           })}
         />
-        {(clueMap[cell]) && (
+        {(cellToClueMap[cell]) && (
           <text
             x={x + cellSize * 0.05}
             y={y + cellSize * 0.05}
             alignmentBaseline="hanging"
             fontSize={cellSize * 0.3}
           >
-            {clueMap[cell]}
+            {cellToClueMap[cell]}
           </text>
         )}
         {(board.grid[cell] && board.grid[cell] !== BLACK_SYMBOL) && (
@@ -71,10 +68,12 @@ class CellsContainer extends React.Component<ContainerProps> {
 
   render() {
     const { board } = this.props;
+    const answerMap = getAnswerMap(board);
+    const cellToClueMap = getCellToClueMap(answerMap);
 
     return (
       <g data-group="cells">
-        {times(board.size ** 2, i => this.renderCell(i))}
+        {times(board.size ** 2, i => this.renderCell(i, cellToClueMap))}
       </g>
     );
   }
