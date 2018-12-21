@@ -4,6 +4,7 @@ import { connect } from 'react-redux';
 
 import { BLACK_SYMBOL, BOARD_WIDTH } from 'config/global';
 import { ContainerProps } from 'containers/definitions/Containers';
+import Dictionary from 'definitions/Dictionary';
 import * as boardModule from 'redux-modules/board';
 import { times } from 'util/arrays';
 
@@ -22,7 +23,9 @@ class CellsContainer extends React.Component<ContainerProps> {
     const cellSize = BOARD_WIDTH / board.size;
     const x = (cell % board.size) * cellSize;
     const y = Math.floor(cell / board.size) * cellSize;
-    const clueMap = boardModule.selectors.getClueMap(board);
+    // const answerMap = boardModule.selectors.getAnswerMap(board);
+    // const clueMap = boardModule.selectors.getClueMap(board);
+    const clueMap: Dictionary<number> = {};
 
     return (
       <g
