@@ -1,4 +1,8 @@
 
+export const includes = <T>(arr: T[], needle: T): boolean => {
+  return arr.indexOf(needle) !== -1;
+};
+
 export const replaceIndex = <T>(arr: T[], index: number, replacement: T) => {
   if (index < 0) {
     return arr;

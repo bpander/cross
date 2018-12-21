@@ -4,9 +4,11 @@ import { connect } from 'react-redux';
 
 import { BLACK_SYMBOL, BOARD_WIDTH } from 'config/global';
 import { ContainerProps } from 'containers/definitions/Containers';
-import { CellToClueMap, getAnswerMap, getCellToClueMap } from 'lib/crossword';
+import Dictionary from 'definitions/Dictionary';
+import { AnswerMap, CellToClueMap, getAnswerMap, getCellToClueMap } from 'lib/crossword';
 import * as boardModule from 'redux-modules/board';
-import { times } from 'util/arrays';
+import { includes, times } from 'util/arrays';
+import { values } from 'util/objects';
 
 class CellsContainer extends React.Component<ContainerProps> {
 
@@ -18,7 +20,16 @@ class CellsContainer extends React.Component<ContainerProps> {
     }
   };
 
-  renderCell(cell: number, cellToClueMap: CellToClueMap) {
+  getHighlightedCells(answerMap: AnswerMap): number[] | undefined {
+    const { board } = this.props;
+    if (!board.cursor) {
+      return;
+    }
+    const answerCellsMap = answerMap[board.direction] as Dictionary<number[]>;
+    return values(answerCellsMap).find(cells => includes(cells, board.cursor));
+  }
+
+  renderCell(cell: number, cellToClueMap: CellToClueMap, highlightedCells?: number[]) {
     const { board } = this.props;
     const cellSize = BOARD_WIDTH / board.size;
     const x = (cell % board.size) * cellSize;
@@ -37,6 +48,7 @@ class CellsContainer extends React.Component<ContainerProps> {
           width={cellSize}
           height={cellSize}
           className={classNames('board__cell', {
+            'board__cell--highlight': highlightedCells && includes(highlightedCells, cell),
             'board__cell--cursor': cell === board.cursor,
             'board__cell--black': board.grid[cell] === BLACK_SYMBOL,
           })}
@@ -70,10 +82,11 @@ class CellsContainer extends React.Component<ContainerProps> {
     const { board } = this.props;
     const answerMap = getAnswerMap(board);
     const cellToClueMap = getCellToClueMap(answerMap);
+    const highlightedCells = this.getHighlightedCells(answerMap);
 
     return (
       <g data-group="cells">
-        {times(board.size ** 2, i => this.renderCell(i, cellToClueMap))}
+        {times(board.size ** 2, i => this.renderCell(i, cellToClueMap, highlightedCells))}
       </g>
     );
   }

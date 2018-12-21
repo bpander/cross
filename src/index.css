@@ -17,6 +17,10 @@ body {
   fill: white;
 }
 
+.board__cell--highlight {
+  fill: #a7d8ff;
+}
+
 .board__cell--cursor {
   fill: #ffda00;
 }

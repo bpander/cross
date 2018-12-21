@@ -20,7 +20,7 @@ export interface CellToClueMap {
   [cell: number]: number;
 }
 
-interface AnswerMap {
+export interface AnswerMap {
   [Direction.Across]: AnswerCellsMap;
   [Direction.Down]: AnswerCellsMap;
 }

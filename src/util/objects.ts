@@ -22,3 +22,7 @@ export const invert = (obj: Dictionary<string | number>): Dictionary<string> => 
 
   return invertedObject;
 };
+
+export const values = <T>(obj: Dictionary<T>): T[] => {
+  return Object.keys(obj).map(key => obj[key]);
+};
