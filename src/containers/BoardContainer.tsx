@@ -1,73 +1,21 @@
-import classNames from 'classnames';
 import React from 'react';
 import { connect } from 'react-redux';
+import { Route } from 'react-router';
 
-import { BLACK_SYMBOL } from 'config/global';
+import { BOARD_WIDTH } from 'config/global';
+import CellsContainer from 'containers/CellsContainer';
 import { ContainerProps } from 'containers/definitions/Containers';
-import * as board from 'redux-modules/board';
 import { times } from 'util/arrays';
-
-const BOARD_WIDTH = 630;
-
-interface CellsProps {
-  size: number;
-  cellSize: number;
-  grid: string[];
-  onCellChange: (pos: number) => void;
-  onCellFill: (value: string) => void;
-  cursor: number | null;
-}
-
-const Cells: React.SFC<CellsProps> = props => (
-  <g data-group="cells">
-    {times(props.size ** 2, i => (
-      <g
-        tabIndex={0}
-        key={i}
-        onKeyDown={e => {
-          if (e.key.match(/^[a-z]$/i) || e.key === BLACK_SYMBOL) {
-            props.onCellFill(e.key.toUpperCase());
-          } else if (e.key === 'Backspace') {
-            props.onCellFill('');
-          }
-        }}
-        onClick={() => props.onCellChange(i)}
-      >
-        <rect
-          x={(i % props.size) * props.cellSize}
-          y={Math.floor(i / props.size) * props.cellSize}
-          width={props.cellSize}
-          height={props.cellSize}
-          className={classNames('board__cell', {
-            'board__cell--cursor': i === props.cursor,
-            'board__cell--black': props.grid[i] === BLACK_SYMBOL,
-          })}
-        />
-        {(props.grid[i] && props.grid[i] !== BLACK_SYMBOL) && (
-          <text
-            x={(i % props.size) * props.cellSize + (props.cellSize / 2)}
-            y={Math.floor(i / props.size) * props.cellSize + props.cellSize - (props.cellSize * 0.1)}
-            textAnchor="middle"
-            alignmentBaseline="baseline"
-            fontSize={props.cellSize * 0.8}
-          >
-            {props.grid[i]}
-          </text>
-        )}
-      </g>
-    ))}
-  </g>
-);
 
 interface GridProps {
   size: number;
-  cellSize: number;
 }
 
 class Grid extends React.PureComponent<GridProps> {
 
   static getPathDef(props: GridProps): string {
-    const { size, cellSize } = props;
+    const { size } = props;
+    const cellSize = BOARD_WIDTH / size;
     const latitudes = times(
       size - 1,
       i => `M0,${cellSize + cellSize * i} L${cellSize * size},${cellSize + cellSize * i}`,
@@ -92,27 +40,17 @@ class Grid extends React.PureComponent<GridProps> {
   }
 }
 
-const BoardContainer: React.SFC<ContainerProps> = props => {
-  const cellSize = BOARD_WIDTH / props.board.size;
-
-  return (
-    <svg
-      width={BOARD_WIDTH}
-      height={BOARD_WIDTH}
-      viewBox={`0 0 ${BOARD_WIDTH} ${BOARD_WIDTH}`}
-      className="board"
-    >
-      <Cells
-        size={props.board.size}
-        grid={props.board.grid}
-        cellSize={cellSize}
-        onCellChange={i => props.dispatch(board.actions.setCursor(i))}
-        onCellFill={value => props.dispatch(board.actions.setValueAtCursor(value))}
-        cursor={props.board.cursor}
-      />
-      <Grid size={props.board.size} cellSize={cellSize} />
-    </svg>
-  );
-};
+// TODO: Does this need to be a container?
+const BoardContainer: React.SFC<ContainerProps> = props => (
+  <svg
+    width={BOARD_WIDTH}
+    height={BOARD_WIDTH}
+    viewBox={`0 0 ${BOARD_WIDTH} ${BOARD_WIDTH}`}
+    className="board"
+  >
+    <Route component={CellsContainer} />
+    <Grid size={props.board.size} />
+  </svg>
+);
 
 export default connect(state => state)(BoardContainer);
