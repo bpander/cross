@@ -1,3 +1,7 @@
+import { faDelicious } from '@fortawesome/free-brands-svg-icons';
+import { faCircle } from '@fortawesome/free-regular-svg-icons';
+import { faRedoAlt, faSquare, faUndoAlt } from '@fortawesome/free-solid-svg-icons';
+import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import React from 'react';
 import { connect } from 'react-redux';
 import { Route } from 'react-router';
@@ -17,7 +21,25 @@ class EditorContainer extends React.Component<EditorProps, EditorContainerState>
   static tabs: Tab[] = [
     {
       label: 'Structure',
-      panel: () => <div>structure</div>,
+      panel: () => (
+        <div>
+          <button className="btn">
+            <FontAwesomeIcon fixedWidth size="lg" icon={faUndoAlt} />
+          </button>
+          <button className="btn" disabled>
+            <FontAwesomeIcon fixedWidth size="lg" icon={faRedoAlt} />
+          </button>
+          <button className="btn btn--active">
+            <FontAwesomeIcon fixedWidth size="lg" icon={faDelicious} />
+          </button>
+          <button className="btn">
+            <FontAwesomeIcon fixedWidth size="lg" icon={faSquare} />
+          </button>
+          <button className="btn">
+            <FontAwesomeIcon fixedWidth size="lg" icon={faCircle} />
+          </button>
+        </div>
+      ),
     },
     {
       label: 'Fill',

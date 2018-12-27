@@ -17,7 +17,7 @@
 
 .tabs__trigger:focus {
   outline: none;
-  background: var(--focus-background);
+  background: var(--btn-bg-focus);
 }
 
 .tabs__trigger--active {

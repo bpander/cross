@@ -4,5 +4,6 @@
   --grey-50: #7f7f7f;
   --grey-100: #000000;
 
-  --focus-background: rgba(0, 0, 0, 0.1);
+  --btn-bg-active: rgba(0, 0, 0, 0.2);
+  --btn-bg-focus: rgba(0, 0, 0, 0.075);
 }

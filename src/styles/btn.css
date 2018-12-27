@@ -1,0 +1,21 @@
+
+.btn {
+  font: inherit;
+  border-radius: 3px;
+  border: none;
+  padding: 0.125rem;
+}
+
+.btn:disabled {
+  opacity: 0.33;
+}
+
+.btn:focus,
+.btn:hover:not(:disabled) {
+  background: var(--btn-bg-focus);
+  outline: none;
+}
+
+.btn--active {
+  background: var(--btn-bg-active);
+}
