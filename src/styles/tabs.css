@@ -1,0 +1,31 @@
+
+.tabs__list {
+  display: flex;
+  margin-left: -0.5rem;
+}
+
+.tabs__trigger {
+  font: inherit;
+  background: none;
+  border: none;
+  margin: 0;
+  margin-left: 0.5rem;
+  padding: 0.5rem 0.75rem calc(0.5rem - 2px);
+  color: var(--grey-50);
+  border-bottom: 2px solid transparent;
+}
+
+.tabs__trigger:focus {
+  outline: none;
+  background: var(--focus-background);
+}
+
+.tabs__trigger--active {
+  color: var(--grey-100);
+  border-bottom-color: var(--grey-100);
+}
+
+.tabs__panel {
+  margin-top: -1px;
+  border-top: 1px solid var(--grey-25);
+}

@@ -1,0 +1,26 @@
+
+.board {
+  font-family: 'Helvetica Neue', Arial, Helvetica, sans-serif;
+  border: 3px solid var(--grey-100);
+  user-select: none;
+  display: block;
+  width: 100%;
+  height: auto;
+}
+
+/* TODO: Pick different colors and add them as custom properties */
+.board__cell {
+  fill: white;
+}
+
+.board__cell--highlight {
+  fill: #a7d8ff;
+}
+
+.board__cell--cursor {
+  fill: #ffda00;
+}
+
+.board__cell--black {
+  fill: #000000;
+}

@@ -1,3 +1,4 @@
+import classNames from 'classnames';
 import React from 'react';
 
 export interface Tab {
@@ -15,7 +16,13 @@ const Tabs: React.SFC<TabsProps> = props => (
   <div className="tabs">
     <div className="tabs__list">
       {props.tabs.map((tab, i) => (
-        <button key={i} className="tabs__trigger" onClick={() => props.onChange(i)}>
+        <button
+          key={i}
+          className={classNames('tabs__trigger', {
+            'tabs__trigger--active': i === props.active,
+          })}
+          onClick={() => props.onChange(i)}
+        >
           {tab.label}
         </button>
       ))}

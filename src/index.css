@@ -1,30 +1,8 @@
-body {
-  margin: 0;
-  padding: 0;
-  font-family: "Libre Franklin", -apple-system, BlinkMacSystemFont, "Segoe UI", "Roboto", "Oxygen",
-    "Ubuntu", "Cantarell", "Fira Sans", "Droid Sans", "Helvetica Neue",
-    sans-serif;
-  -webkit-font-smoothing: antialiased;
-  -moz-osx-font-smoothing: grayscale;
-}
 
-.board {
-  border: 3px solid black;
-  user-select: none;
-}
+@import 'styles/variables.css';
+@import 'styles/base.css';
 
-.board__cell {
-  fill: white;
-}
+@import 'styles/util.css';
 
-.board__cell--highlight {
-  fill: #a7d8ff;
-}
-
-.board__cell--cursor {
-  fill: #ffda00;
-}
-
-.board__cell--black {
-  fill: #000000;
-}
+@import 'styles/board.css';
+@import 'styles/tabs.css';

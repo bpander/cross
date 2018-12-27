@@ -46,11 +46,11 @@ class EditorContainer extends React.Component<EditorProps, EditorContainerState>
 
   render() {
     return (
-      <div style={{ display: 'flex' }}>
-        <div>
+      <div className="grid">
+        <div className="grid__col">
           <Route component={BoardContainer} />
         </div>
-        <div>
+        <div className="grid__col">
           <Tabs
             tabs={EditorContainer.tabs}
             active={this.state.tab}
