@@ -2,10 +2,13 @@ import React from 'react';
 import { connect } from 'react-redux';
 import { Route } from 'react-router';
 
+import Grid from 'components/Grid';
 import Tabs, { Tab } from 'components/Tabs';
-import BoardContainer from 'containers/BoardContainer';
+import { BLACK_SYMBOL, BOARD_WIDTH } from 'config/global';
+import CellsContainer from 'containers/CellsContainer';
 import { ContainerProps } from 'containers/definitions/Containers';
-import EditorStructureContainer from './EditorStructureContainer';
+import EditorStructureContainer from 'containers/EditorStructureContainer';
+import * as boardModule from 'redux-modules/board';
 
 type EditorProps = ContainerProps<{ puzzleId?: string; }>;
 
@@ -41,6 +44,18 @@ class EditorContainer extends React.Component<EditorProps, EditorContainerState>
     };
   }
 
+  componentDidMount() {
+    window.addEventListener('keydown', this.onKeyDown);
+  }
+
+  onKeyDown = (e: KeyboardEvent) => {
+    if (e.key.match(/^[a-z]$/i) || e.key === BLACK_SYMBOL) {
+      this.props.dispatch(boardModule.actions.setValueAtCursor(e.key.toUpperCase()));
+    } else if (e.key === 'Backspace') {
+      this.props.dispatch(boardModule.actions.setValueAtCursor(''));
+    }
+  };
+
   onTabChange = (tab: number) => {
     this.setState({ tab });
   };
@@ -49,7 +64,15 @@ class EditorContainer extends React.Component<EditorProps, EditorContainerState>
     return (
       <div className="grid">
         <div className="grid__col">
-          <Route component={BoardContainer} />
+          <svg
+            width={BOARD_WIDTH}
+            height={BOARD_WIDTH}
+            viewBox={`0 0 ${BOARD_WIDTH} ${BOARD_WIDTH}`}
+            className="board"
+          >
+            <Route component={CellsContainer} />
+            <Grid size={this.props.board.size} />
+          </svg>
         </div>
         <div className="grid__col">
           <Tabs

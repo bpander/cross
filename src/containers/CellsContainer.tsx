@@ -12,14 +12,6 @@ import { values } from 'util/objects';
 
 class CellsContainer extends React.Component<ContainerProps> {
 
-  onCellKeyDown: React.KeyboardEventHandler<SVGElement> = e => {
-    if (e.key.match(/^[a-z]$/i) || e.key === BLACK_SYMBOL) {
-      this.props.dispatch(boardModule.actions.setValueAtCursor(e.key.toUpperCase()));
-    } else if (e.key === 'Backspace') {
-      this.props.dispatch(boardModule.actions.setValueAtCursor(''));
-    }
-  };
-
   getHighlightedCells(answerMap: AnswerMap): number[] | undefined {
     const { board } = this.props;
     if (!board.cursor) {
@@ -37,9 +29,7 @@ class CellsContainer extends React.Component<ContainerProps> {
 
     return (
       <g
-        tabIndex={0}
         key={cell}
-        onKeyDown={this.onCellKeyDown}
         onClick={() => this.props.dispatch(boardModule.actions.setCursor(cell))}
       >
         <rect

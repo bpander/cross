@@ -1,10 +1,6 @@
 import React from 'react';
-import { connect } from 'react-redux';
-import { Route } from 'react-router';
 
 import { BOARD_WIDTH } from 'config/global';
-import CellsContainer from 'containers/CellsContainer';
-import { ContainerProps } from 'containers/definitions/Containers';
 import { times } from 'util/arrays';
 
 interface GridProps {
@@ -40,17 +36,4 @@ class Grid extends React.PureComponent<GridProps> {
   }
 }
 
-// TODO: Does this need to be a container?
-const BoardContainer: React.SFC<ContainerProps> = props => (
-  <svg
-    width={BOARD_WIDTH}
-    height={BOARD_WIDTH}
-    viewBox={`0 0 ${BOARD_WIDTH} ${BOARD_WIDTH}`}
-    className="board"
-  >
-    <Route component={CellsContainer} />
-    <Grid size={props.board.size} />
-  </svg>
-);
-
-export default connect(state => state)(BoardContainer);
+export default Grid;
