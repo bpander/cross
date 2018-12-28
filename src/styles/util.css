@@ -17,6 +17,22 @@
   background: var(--grey-25);
 }
 
+.vr {
+  height: 100%;
+  width: 1px;
+  background: var(--grey-25);
+}
+
 .d-block {
   display: block;
 }
+
+.h-list {
+  display: flex;
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+
+.h-list-1 { margin-left: -2px; }
+.h-list-1 > * { margin-left: 2px; }
