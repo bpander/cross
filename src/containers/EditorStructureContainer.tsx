@@ -1,18 +1,37 @@
 import React from 'react';
 import { connect } from 'react-redux';
 
+import classNames from 'classnames';
+import { BLACK_SYMBOL } from 'config/global';
+import { ContainerProps } from 'containers/definitions/Containers';
 import Icon from 'icons/Icon';
 import iconChecker from 'icons/iconChecker';
 import iconCircle from 'icons/iconCircle';
 import iconCursor from 'icons/iconCursor';
 import iconRedo from 'icons/iconRedo';
 import iconSquare from 'icons/iconSquare';
+import iconTextRotateVertical from 'icons/iconTextRotateVertical';
 import iconTextRotationNone from 'icons/iconTextRotationNone';
 import iconUndo from 'icons/iconUndo';
+import { Direction } from 'lib/crossword';
+import * as boardModule from 'redux-modules/board';
 
-class EditorStructureContainer extends React.Component {
+class EditorStructureContainer extends React.Component<ContainerProps> {
+
+  onToggleBlackClick: React.MouseEventHandler<HTMLButtonElement> = () => {
+    this.props.dispatch(boardModule.actions.setValueAtCursor(BLACK_SYMBOL));
+  };
+
+  onToggleDirectionClick: React.MouseEventHandler<HTMLButtonElement> = () => {
+    this.props.dispatch(boardModule.actions.toggleDirection());
+  };
 
   renderToolbar() {
+    const { board } = this.props;
+    const directionIconDef = (board.direction === Direction.Across)
+      ? iconTextRotationNone
+      : iconTextRotateVertical;
+
     return (
       <div className="py-1 typ-1.5">
         <ul className="h-list h-list-1">
@@ -35,7 +54,12 @@ class EditorStructureContainer extends React.Component {
             </button>
           </li>
           <li>
-            <button className="btn d-block">
+            <button
+              className={classNames('btn d-block', {
+                'btn--active': board.cursor && board.grid[board.cursor] === BLACK_SYMBOL,
+              })}
+              onClick={this.onToggleBlackClick}
+            >
               <Icon def={iconSquare} className="d-block" />
             </button>
           </li>
@@ -45,8 +69,8 @@ class EditorStructureContainer extends React.Component {
             </button>
           </li>
           <li>
-            <button className="btn d-block">
-              <Icon def={iconTextRotationNone} className="d-block" />
+            <button className="btn d-block" onClick={this.onToggleDirectionClick}>
+              <Icon def={directionIconDef} className="d-block" />
             </button>
           </li>
           <li>
