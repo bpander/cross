@@ -23,3 +23,7 @@
 .board__cell--black {
   fill: var(--grey-100);
 }
+
+.board__cell--black.board__cell--cursor {
+  fill: var(--color-highlight-black);
+}
