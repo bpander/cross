@@ -8,19 +8,18 @@
   height: auto;
 }
 
-/* TODO: Pick different colors and add them as custom properties */
 .board__cell {
-  fill: white;
+  fill: var(--grey-0);
 }
 
 .board__cell--highlight {
-  fill: #a7d8ff;
+  fill: var(--color-highlight-secondary);
 }
 
 .board__cell--cursor {
-  fill: #ffda00;
+  fill: var(--color-highlight-primary);
 }
 
 .board__cell--black {
-  fill: #000000;
+  fill: var(--grey-100);
 }

@@ -6,3 +6,11 @@
 .grid__col {
   flex: 1 1 0;
 }
+
+.hr {
+  margin: 0;
+  padding: 0;
+  border: none;
+  height: 1px;
+  background: var(--grey-25);
+}
