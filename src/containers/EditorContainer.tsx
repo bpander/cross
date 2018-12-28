@@ -48,11 +48,18 @@ class EditorContainer extends React.Component<EditorProps, EditorContainerState>
     window.addEventListener('keydown', this.onKeyDown);
   }
 
+  componentWillUnmount() {
+    window.removeEventListener('keydown', this.onKeyDown);
+  }
+
   onKeyDown = (e: KeyboardEvent) => {
-    if (e.key.match(/^[a-z]$/i) || e.key === BLACK_SYMBOL) {
-      this.props.dispatch(boardModule.actions.setValueAtCursor(e.key.toUpperCase()));
-    } else if (e.key === 'Backspace') {
-      this.props.dispatch(boardModule.actions.setValueAtCursor(''));
+    switch (e.key) {
+      case 'Enter': return this.props.dispatch(boardModule.actions.toggleDirection());
+      case 'Backspace': return this.props.dispatch(boardModule.actions.setValueAtCursor(''));
+      default:
+        if (e.key.match(/^[a-z]$/i) || e.key === BLACK_SYMBOL) {
+          this.props.dispatch(boardModule.actions.setValueAtCursor(e.key.toUpperCase()));
+        }
     }
   };
 

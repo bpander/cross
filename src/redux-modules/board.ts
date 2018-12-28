@@ -23,6 +23,11 @@ const { reducer, update } = createReducer<BoardState>('board/UPDATE', initialSta
 export const boardReducer = reducer;
 
 export const actions = {
+  toggleDirection: (): RootThunkAction<void> => (dispatch, getState) => {
+    const { board } = getState();
+    dispatch(update({ direction: toggleDirection(board.direction) }));
+  },
+
   setCursor: (cursor: number | null): RootThunkAction<void> => (dispatch, getState) => {
     const { board } = getState();
     const direction = toggleDirection(board.direction, board.cursor === cursor);
