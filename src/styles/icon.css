@@ -1,0 +1,13 @@
+
+.icon {
+  height: 1em;
+  width: auto;
+}
+
+.icon {
+  vertical-align: 0.2em;
+}
+
+.icon path {
+  fill: currentColor;
+}

@@ -14,3 +14,7 @@
   height: 1px;
   background: var(--grey-25);
 }
+
+.d-block {
+  display: block;
+}
