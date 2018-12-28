@@ -15,7 +15,7 @@ const initialState: BoardState = {
     down: [],
   },
   grid: times(15 ** 2, () => ''),
-  cursor: null,
+  cursor: 0,
   direction: Direction.Across,
 };
 
@@ -28,17 +28,10 @@ export const actions = {
     dispatch(update({ direction: toggleDirection(board.direction) }));
   },
 
-  setCursor: (cursor: number | null): RootThunkAction<void> => (dispatch, getState) => {
-    const { board } = getState();
-    const direction = toggleDirection(board.direction, board.cursor === cursor);
-    dispatch(update({ cursor, direction }));
-  },
+  setCursor: (cursor: number) => update({ cursor }),
 
   setValueAtCursor: (value: string): RootThunkAction<void> => (dispatch, getState) => {
     const { board } = getState();
-    if (board.cursor === null) {
-      return;
-    }
     if (value === BLACK_SYMBOL) {
       const newValue = (board.grid[board.cursor] === BLACK_SYMBOL) ? '' : value;
       const mid = (board.size - 1) / 2;

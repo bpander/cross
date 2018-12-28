@@ -56,7 +56,7 @@ class EditorStructureContainer extends React.Component<ContainerProps> {
           <li>
             <button
               className={classNames('btn d-block', {
-                'btn--active': board.cursor && board.grid[board.cursor] === BLACK_SYMBOL,
+                'btn--active': board.grid[board.cursor] === BLACK_SYMBOL,
               })}
               onClick={this.onToggleBlackClick}
             >

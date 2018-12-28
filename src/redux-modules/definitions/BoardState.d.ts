@@ -9,6 +9,6 @@ export default interface BoardState {
     down: string[];
   };
   grid: string[];
-  cursor: number | null;
+  cursor: number;
   direction: Direction;
 }

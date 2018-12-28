@@ -9,6 +9,8 @@ import CellsContainer from 'containers/CellsContainer';
 import { ContainerProps } from 'containers/definitions/Containers';
 import EditorStructureContainer from 'containers/EditorStructureContainer';
 import * as boardModule from 'redux-modules/board';
+import { getIndex, getXY } from 'util/grid2Ds';
+import { clamp } from 'util/numbers';
 
 type EditorProps = ContainerProps<{ puzzleId?: string; }>;
 
@@ -53,7 +55,31 @@ class EditorContainer extends React.Component<EditorProps, EditorContainerState>
   }
 
   onKeyDown = (e: KeyboardEvent) => {
+    const { board } = this.props;
+    let directionMultiplier = 1;
     switch (e.key) {
+      case 'ArrowUp':
+        directionMultiplier = -1;
+      case 'ArrowDown': {
+        const [ x ] = getXY(board.size, board.cursor);
+        const min = getIndex(board.size, [ x, 0 ]);
+        const max = getIndex(board.size, [ x, board.size - 1 ]);
+        const cursor = clamp(board.cursor + board.size * directionMultiplier, min, max);
+        this.props.dispatch(boardModule.actions.setCursor(cursor));
+        break;
+      }
+
+      case 'ArrowLeft':
+        directionMultiplier = -1;
+      case 'ArrowRight': {
+        const [ , y ] = getXY(board.size, board.cursor);
+        const min = getIndex(board.size, [ 0, y ]);
+        const max = getIndex(board.size, [ board.size - 1, y ]);
+        const cursor = clamp(board.cursor + directionMultiplier, min, max);
+        this.props.dispatch(boardModule.actions.setCursor(cursor));
+        break;
+      }
+
       case 'Enter': return this.props.dispatch(boardModule.actions.toggleDirection());
       case 'Backspace': return this.props.dispatch(boardModule.actions.setValueAtCursor(''));
       default:

@@ -14,9 +14,6 @@ class CellsContainer extends React.Component<ContainerProps> {
 
   getHighlightedCells(answerMap: AnswerMap): number[] | undefined {
     const { board } = this.props;
-    if (!board.cursor) {
-      return;
-    }
     const answerCellsMap = answerMap[board.direction] as Dictionary<number[]>;
     return values(answerCellsMap).find(cells => includes(cells, board.cursor));
   }
@@ -30,7 +27,12 @@ class CellsContainer extends React.Component<ContainerProps> {
     return (
       <g
         key={cell}
-        onClick={() => this.props.dispatch(boardModule.actions.setCursor(cell))}
+        onClick={() => {
+          this.props.dispatch(boardModule.actions.setCursor(cell));
+          if (cell === this.props.board.cursor) {
+            this.props.dispatch(boardModule.actions.toggleDirection());
+          }
+        }}
       >
         <rect
           x={x}

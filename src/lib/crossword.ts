@@ -30,8 +30,8 @@ const flipMap: Dictionary<Direction> = {
   [Direction.Down]: Direction.Across,
 };
 
-export const toggleDirection = (direction: Direction, shouldToggle: boolean = true) => {
-  return (shouldToggle) ? flipMap[direction] : direction;
+export const toggleDirection = (direction: Direction) => {
+  return flipMap[direction];
 };
 
 const hasBorderAbove = (board: Board, cell: number): boolean => {
