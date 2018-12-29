@@ -1,8 +1,11 @@
-import { BLACK_SYMBOL } from 'config/global';
-import Dictionary from 'definitions/Dictionary';
 import assignWith from 'lodash/assignWith';
 import groupBy from 'lodash/groupBy';
-import { invert, mapValues } from 'util/objects';
+import includes from 'lodash/includes';
+import keyBy from 'lodash/keyBy';
+
+import { BLACK_SYMBOL } from 'config/global';
+import Dictionary from 'definitions/Dictionary';
+import { invert, mapValues, values } from 'util/objects';
 
 export enum Direction {
   Across = 'A',
@@ -120,4 +123,56 @@ export const getWordCounts = (answerMap: AnswerMap): WordCountMap => {
   );
 
   return wordCounts;
+};
+
+type Cell = number;
+interface Answer {
+  clue: number;
+  direction: Direction;
+  cells: Cell[];
+  intersections: string[];
+}
+
+const getAnswerId = (answer: Answer): string => answer.clue + answer.direction;
+
+const isClueStart = (board: Board, cell: number, direction: Direction): boolean => {
+  switch (direction) {
+    case Direction.Across: return hasBorderLeft(board, cell);
+    case Direction.Down: return hasBorderAbove(board, cell);
+  }
+};
+
+export const getAnswerMap_v2 = (board: Board): Dictionary<Answer> => {
+  const answers: Answer[] = [];
+  let clue = 1;
+  board.grid.forEach((value, cell) => {
+    if (value === BLACK_SYMBOL) {
+      return;
+    }
+    let increment = 0;
+    values(Direction).forEach(direction => {
+      if (isClueStart(board, cell, direction)) {
+        const cells = goToEnd(board, cell, direction);
+        if (cells.length > 1) {
+          answers.push({ clue, direction, cells, intersections: [] });
+          increment = 1;
+        }
+      }
+    });
+    clue += increment;
+  });
+
+  const openSet = [ ...answers ];
+  let answer: Answer | undefined;
+  while (answer = openSet.shift()) {
+    answer.cells.forEach(cell => {
+      const intersectedAnswer = openSet.find(otherAnswer => includes(otherAnswer.cells, cell));
+      if (intersectedAnswer) {
+        intersectedAnswer.intersections.push(getAnswerId(answer!));
+        answer!.intersections.push(getAnswerId(intersectedAnswer));
+      }
+    });
+  }
+
+  return keyBy(answers, getAnswerId);
 };

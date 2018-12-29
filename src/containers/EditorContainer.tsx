@@ -9,6 +9,7 @@ import { BLACK_SYMBOL, BOARD_WIDTH } from 'config/global';
 import CellsContainer from 'containers/CellsContainer';
 import { ContainerProps } from 'containers/definitions/Containers';
 import EditorStructureContainer from 'containers/EditorStructureContainer';
+import { getAnswerMap_v2 } from 'lib/crossword';
 import * as boardModule from 'redux-modules/board';
 import { getIndex, getXY } from 'util/grid2Ds';
 
@@ -48,6 +49,8 @@ class EditorContainer extends React.Component<EditorProps, EditorContainerState>
 
   componentDidMount() {
     window.addEventListener('keydown', this.onKeyDown);
+    const answerMap = getAnswerMap_v2(this.props.board);
+    console.log({ answerMap });
   }
 
   componentWillUnmount() {
