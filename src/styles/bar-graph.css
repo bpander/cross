@@ -1,0 +1,16 @@
+
+.bar-graph {
+  position: relative;
+  border: 1px solid var(--grey-25);
+  height: 300px; /* TODO: Make aspect ratio */
+  overflow: hidden;
+}
+
+.bar-graph__bar {
+  position: absolute;
+  width: 2%;
+  height: 100%;
+  top: 100%;
+  background: var(--color-highlight-secondary);
+  transition: transform 150ms ease-out;
+}

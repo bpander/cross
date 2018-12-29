@@ -1,8 +1,8 @@
 import { BLACK_SYMBOL } from 'config/global';
 import Dictionary from 'definitions/Dictionary';
-import { invert, mapValues } from 'util/objects';
-import groupBy from 'lodash/groupBy';
 import assignWith from 'lodash/assignWith';
+import groupBy from 'lodash/groupBy';
+import { invert, mapValues } from 'util/objects';
 
 export enum Direction {
   Across = 'A',

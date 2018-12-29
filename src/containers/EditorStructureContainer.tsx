@@ -1,3 +1,6 @@
+import maxBy from 'lodash/maxBy';
+import range from 'lodash/range';
+import values from 'lodash/values';
 import React from 'react';
 import { connect } from 'react-redux';
 
@@ -13,7 +16,7 @@ import iconSquare from 'icons/iconSquare';
 import iconTextRotateVertical from 'icons/iconTextRotateVertical';
 import iconTextRotationNone from 'icons/iconTextRotationNone';
 import iconUndo from 'icons/iconUndo';
-import { Direction } from 'lib/crossword';
+import { Direction, getAnswerMap, getWordCounts } from 'lib/crossword';
 import * as boardModule from 'redux-modules/board';
 
 class EditorStructureContainer extends React.Component<ContainerProps> {
@@ -83,10 +86,29 @@ class EditorStructureContainer extends React.Component<ContainerProps> {
     );
   }
   render() {
+    const answerMap = getAnswerMap(this.props.board);
+    const wordCounts = getWordCounts(answerMap);
+    const maxGroupLength = maxBy(values(wordCounts), cellGroups => cellGroups.length)!.length;
+    const { board } = this.props;
     return (
       <React.Fragment>
         {this.renderToolbar()}
         <hr className="hr" />
+        <div className="bar-graph">
+          {range(1, board.size + 1).map(n => {
+            const length = (wordCounts[n]) ? wordCounts[n].length : 0;
+            return (
+              <div
+                key={n}
+                className="bar-graph__bar"
+                style={{
+                  left: (n / board.size * 90) + 5 + '%',
+                  transform: `translateY(-${length / maxGroupLength * 100}%)`,
+                }}
+              />
+            );
+          })}
+        </div>
       </React.Fragment>
     );
   }
