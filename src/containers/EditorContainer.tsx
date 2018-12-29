@@ -1,3 +1,4 @@
+import clamp from 'lodash/clamp';
 import React from 'react';
 import { connect } from 'react-redux';
 import { Route } from 'react-router';
@@ -10,7 +11,6 @@ import { ContainerProps } from 'containers/definitions/Containers';
 import EditorStructureContainer from 'containers/EditorStructureContainer';
 import * as boardModule from 'redux-modules/board';
 import { getIndex, getXY } from 'util/grid2Ds';
-import { clamp } from 'util/numbers';
 
 type EditorProps = ContainerProps<{ puzzleId?: string; }>;
 
