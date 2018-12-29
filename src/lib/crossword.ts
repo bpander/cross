@@ -1,6 +1,8 @@
 import { BLACK_SYMBOL } from 'config/global';
 import Dictionary from 'definitions/Dictionary';
 import { invert, mapValues } from 'util/objects';
+import groupBy from 'lodash/groupBy';
+import assignWith from 'lodash/assignWith';
 
 export enum Direction {
   Across = 'A',
@@ -24,6 +26,8 @@ export interface AnswerMap {
   [Direction.Across]: AnswerCellsMap;
   [Direction.Down]: AnswerCellsMap;
 }
+
+interface WordCountMap { [wordLength: number]: number[][]; }
 
 const flipMap: Dictionary<Direction> = {
   [Direction.Across]: Direction.Down,
@@ -106,4 +110,14 @@ export const getCellToClueMap = (answerMap: AnswerMap): CellToClueMap => {
   const cellToClueMap = mapValues(invert(clueToCellMap), Number);
 
   return cellToClueMap;
+};
+
+export const getWordCounts = (answerMap: AnswerMap): WordCountMap => {
+  const wordCounts: WordCountMap = assignWith(
+    groupBy(answerMap[Direction.Across], 'length'),
+    groupBy(answerMap[Direction.Down], 'length'),
+    (objectValue = [], sourceValue) => [ ...objectValue, ...sourceValue ],
+  );
+
+  return wordCounts;
 };
