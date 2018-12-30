@@ -1,4 +1,6 @@
+import chunk from 'lodash/chunk';
 import clamp from 'lodash/clamp';
+import values from 'lodash/values';
 import React from 'react';
 import { connect } from 'react-redux';
 import { Route } from 'react-router';
@@ -9,7 +11,8 @@ import { BLACK_SYMBOL, BOARD_WIDTH } from 'config/global';
 import CellsContainer from 'containers/CellsContainer';
 import { ContainerProps } from 'containers/definitions/Containers';
 import EditorStructureContainer from 'containers/EditorStructureContainer';
-import { getAnswerMap_v2 } from 'lib/crossword';
+import dictTxt from 'data/dict.txt';
+import { autoFill, getAnswerMap_v2 } from 'lib/crossword';
 import * as boardModule from 'redux-modules/board';
 import { getIndex, getXY } from 'util/grid2Ds';
 
@@ -47,10 +50,24 @@ class EditorContainer extends React.Component<EditorProps, EditorContainerState>
     };
   }
 
-  componentDidMount() {
+  async componentDidMount() {
     window.addEventListener('keydown', this.onKeyDown);
+    const response = await fetch(dictTxt);
+    const dictStr = await response.text();
+    const words = dictStr.split('\n');
+    const wordsJumbled = [ ...words ].sort(() => 1 - Math.round(Math.random() * 2));
+
     const answerMap = getAnswerMap_v2(this.props.board);
-    console.log({ answerMap });
+    const uncheckedAnswers = values(answerMap).filter(
+      answer => answer.cells.some(cell => this.props.board.grid[cell] === ''),
+    );
+
+    console.log('starting fill...');
+    const fillResult = autoFill(this.props.board.grid, uncheckedAnswers, { 5: wordsJumbled });
+    console.log({ fillResult });
+    if (fillResult.success) {
+      console.log(chunk(fillResult.grid, this.props.board.size));
+    }
   }
 
   componentWillUnmount() {

@@ -6,6 +6,7 @@ import keyBy from 'lodash/keyBy';
 import { BLACK_SYMBOL } from 'config/global';
 import Dictionary from 'definitions/Dictionary';
 import { invert, mapValues, values } from 'util/objects';
+// import chunk from 'lodash/chunk';
 
 export enum Direction {
   Across = 'A',
@@ -127,13 +128,12 @@ export const getWordCounts = (answerMap: AnswerMap): WordCountMap => {
 
 type Cell = number;
 interface Answer {
+  id: string;
   clue: number;
   direction: Direction;
   cells: Cell[];
   intersections: string[];
 }
-
-const getAnswerId = (answer: Answer): string => answer.clue + answer.direction;
 
 const isClueStart = (board: Board, cell: number, direction: Direction): boolean => {
   switch (direction) {
@@ -154,7 +154,7 @@ export const getAnswerMap_v2 = (board: Board): Dictionary<Answer> => {
       if (isClueStart(board, cell, direction)) {
         const cells = goToEnd(board, cell, direction);
         if (cells.length > 1) {
-          answers.push({ clue, direction, cells, intersections: [] });
+          answers.push({ id: clue + direction, clue, direction, cells, intersections: [] });
           increment = 1;
         }
       }
@@ -168,11 +168,61 @@ export const getAnswerMap_v2 = (board: Board): Dictionary<Answer> => {
     answer.cells.forEach(cell => {
       const intersectedAnswer = openSet.find(otherAnswer => includes(otherAnswer.cells, cell));
       if (intersectedAnswer) {
-        intersectedAnswer.intersections.push(getAnswerId(answer!));
-        answer!.intersections.push(getAnswerId(intersectedAnswer));
+        intersectedAnswer.intersections.push(answer!.id);
+        answer!.intersections.push(intersectedAnswer.id);
       }
     });
   }
 
-  return keyBy(answers, getAnswerId);
+  return keyBy(answers, 'id');
+};
+
+type AutoFillResult = { success: false; } | { success: true; grid: string[]; } | { success: undefined };
+
+const fillWordAt = (grid: string[], word: string, answer: Answer): string[] => {
+  const gridCopy = [ ...grid ];
+  answer.cells.forEach((cell, i) => {
+    gridCopy[cell] = word[i];
+  });
+  return gridCopy;
+};
+
+const getRegExp = (grid: string[], answer: Answer): RegExp => {
+  const characters = answer.cells.map(cell => grid[cell] || '.').join('');
+  return new RegExp(`^${characters}$`);
+};
+
+export const autoFill = (grid: string[], answers: Answer[], dictionary: Dictionary<string[]>): AutoFillResult => {
+  let res: AutoFillResult = { success: false };
+  const openSet = [ ...answers ];
+  const answer = openSet.shift();
+  if (!answer) {
+    return { success: true, grid };
+  }
+  const candidates = dictionary[answer.cells.length];
+  if (!candidates) {
+    return { success: false };
+  }
+  const re = getRegExp(grid, answer);
+  candidates.some(candidate => {
+    if (!re.test(candidate)) {
+      return false;
+    }
+    const g = fillWordAt(grid, candidate, answer);
+    const isValid = answer.intersections.every(answerId => {
+      const otherAnswer = answers.find(a => a.id === answerId);
+      if (!otherAnswer) {
+        return true;
+      }
+      const re = getRegExp(g, otherAnswer);
+      return candidates.some(c => re.test(c));
+    });
+    if (!isValid) {
+      return false;
+    }
+    res = autoFill(g, openSet, dictionary);
+    return res.success === true;
+  });
+
+  return res;
 };
