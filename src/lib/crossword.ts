@@ -5,8 +5,8 @@ import keyBy from 'lodash/keyBy';
 
 import { BLACK_SYMBOL } from 'config/global';
 import Dictionary from 'definitions/Dictionary';
+import { removeFirst } from 'util/arrays';
 import { invert, mapValues, values } from 'util/objects';
-// import chunk from 'lodash/chunk';
 
 export enum Direction {
   Across = 'A',
@@ -177,7 +177,7 @@ export const getAnswerMap_v2 = (board: Board): Dictionary<Answer> => {
   return keyBy(answers, 'id');
 };
 
-type AutoFillResult = { success: false; } | { success: true; grid: string[]; } | { success: undefined };
+type AutoFillResult = { success: false; } | { success: true; grid: string[]; };
 
 const fillWordAt = (grid: string[], word: string, answer: Answer): string[] => {
   const gridCopy = [ ...grid ];
@@ -189,7 +189,8 @@ const fillWordAt = (grid: string[], word: string, answer: Answer): string[] => {
 
 const strMatch = (grid: string[], answer: Answer, candidate: string): boolean => {
   for (let i = 0; i < answer.cells.length; i++) {
-    if (grid[answer.cells[i]] && grid[answer.cells[i]] !== candidate[i]) {
+    const char = grid[answer.cells[i]];
+    if (char !== '' && char !== candidate[i]) {
       return false;
     }
   }
@@ -211,19 +212,23 @@ export const autoFill = (grid: string[], answers: Answer[], dictionary: Dictiona
     if (!strMatch(grid, answer, candidate)) {
       return false;
     }
-    const g = fillWordAt(grid, candidate, answer);
+    const potentialGrid = fillWordAt(grid, candidate, answer);
     const isValid = answer.intersections.every(answerId => {
-      const otherAnswer = answers.find(a => a.id === answerId);
+      const otherAnswer = openSet.find(a => a.id === answerId);
       if (!otherAnswer) {
         return true;
       }
-      return candidates.some(c => strMatch(g, otherAnswer, c));
+      return candidates.some(c => strMatch(potentialGrid, otherAnswer, c));
     });
     if (!isValid) {
       return false;
     }
-    res = autoFill(g, openSet, dictionary);
-    return res.success === true;
+    res = autoFill(
+      potentialGrid,
+      openSet,
+      { ...dictionary, [answer.cells.length]: removeFirst(candidates, c => c === candidate) },
+    );
+    return res.success;
   });
 
   return res;
