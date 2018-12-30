@@ -187,9 +187,13 @@ const fillWordAt = (grid: string[], word: string, answer: Answer): string[] => {
   return gridCopy;
 };
 
-const getRegExp = (grid: string[], answer: Answer): RegExp => {
-  const characters = answer.cells.map(cell => grid[cell] || '.').join('');
-  return new RegExp(`^${characters}$`);
+const strMatch = (grid: string[], answer: Answer, candidate: string): boolean => {
+  for (let i = 0; i < answer.cells.length; i++) {
+    if (grid[answer.cells[i]] && grid[answer.cells[i]] !== candidate[i]) {
+      return false;
+    }
+  }
+  return true;
 };
 
 export const autoFill = (grid: string[], answers: Answer[], dictionary: Dictionary<string[]>): AutoFillResult => {
@@ -203,9 +207,8 @@ export const autoFill = (grid: string[], answers: Answer[], dictionary: Dictiona
   if (!candidates) {
     return { success: false };
   }
-  const re = getRegExp(grid, answer);
   candidates.some(candidate => {
-    if (!re.test(candidate)) {
+    if (!strMatch(grid, answer, candidate)) {
       return false;
     }
     const g = fillWordAt(grid, candidate, answer);
@@ -214,8 +217,7 @@ export const autoFill = (grid: string[], answers: Answer[], dictionary: Dictiona
       if (!otherAnswer) {
         return true;
       }
-      const re = getRegExp(g, otherAnswer);
-      return candidates.some(c => re.test(c));
+      return candidates.some(c => strMatch(g, otherAnswer, c));
     });
     if (!isValid) {
       return false;
