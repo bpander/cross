@@ -67,7 +67,6 @@ const guess_word = (answerMap: Dictionary<Answer>, line_id: string, guess: strin
   const all_ids = Object.keys(answerMap);
   const possible_ids = difference(all_ids, solved_ids);
   if (!possible_ids.length) {
-    console.log(JSON.parse(JSON.stringify(currentSolution)));
     return { success: true, solution: currentSolution };
   }
   const target_id = getOptimalGuessLine(possible_ids, new_fitting_words);
@@ -75,19 +74,19 @@ const guess_word = (answerMap: Dictionary<Answer>, line_id: string, guess: strin
     return { success: false };
   }
 
+  let result: AutoFillResult = { success: false };
   new_fitting_words[target_id].some(possibleWord => {
     if (includes(values(currentSolution), possibleWord)) {
       return false;
     }
-    const result = guess_word(answerMap, target_id, possibleWord, new_fitting_words, currentSolution);
+    result = guess_word(answerMap, target_id, possibleWord, new_fitting_words, currentSolution);
     return result.success;
   });
 
-  // # It is important to remove the guess from the current_solutions list after
-  // # we are done with it so that it is not still there when we are attempting
-  // # to start a new search branch.
-  delete currentSolution[line_id];
-  return { success: false };
+  if (!result.success) {
+    delete currentSolution[line_id];
+  }
+  return result;
 };
 
 const getOptimalGuessLine = (id_list: string[], fittingWords: Dictionary<string[]>): string | undefined => {
