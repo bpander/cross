@@ -1,6 +1,4 @@
-import chunk from 'lodash/chunk';
 import clamp from 'lodash/clamp';
-import values from 'lodash/values';
 import React from 'react';
 import { connect } from 'react-redux';
 import { Route } from 'react-router';
@@ -12,7 +10,8 @@ import CellsContainer from 'containers/CellsContainer';
 import { ContainerProps } from 'containers/definitions/Containers';
 import EditorStructureContainer from 'containers/EditorStructureContainer';
 import dictTxt from 'data/dict.txt';
-import { autoFill, getAnswerMap_v2 } from 'lib/crossword';
+import { getAnswerMap_v2 } from 'lib/crossword';
+import { autoFill } from 'lib/crossword/solver';
 import * as boardModule from 'redux-modules/board';
 import { getIndex, getXY } from 'util/grid2Ds';
 
@@ -54,20 +53,19 @@ class EditorContainer extends React.Component<EditorProps, EditorContainerState>
     window.addEventListener('keydown', this.onKeyDown);
     const response = await fetch(dictTxt);
     const dictStr = await response.text();
-    const words = dictStr.split('\n');
-    const wordsJumbled = [ ...words ].sort(() => 1 - Math.round(Math.random() * 2));
+    const lines = dictStr.split('\n');
+    const words = lines.map(line => line.split(';')[0].replace(/[^a-zA-Z0-9]/g, '').toUpperCase());
 
     const answerMap = getAnswerMap_v2(this.props.board);
-    const uncheckedAnswers = values(answerMap).filter(
-      answer => answer.cells.some(cell => this.props.board.grid[cell] === ''),
-    );
-
+    // const uncheckedAnswers = values(answerMap).filter(
+    //   answer => answer.cells.some(cell => this.props.board.grid[cell] === ''),
+    // );
+    // if (Math.random() > -1) {
+    //   return;
+    // }
     console.log('starting fill...');
-    const fillResult = autoFill(this.props.board.grid, uncheckedAnswers, { 5: wordsJumbled });
-    console.log({ fillResult });
-    if (fillResult.success) {
-      console.log(chunk(fillResult.grid, this.props.board.size));
-    }
+    const fillResult = autoFill(answerMap, words);
+    console.log(fillResult);
   }
 
   componentWillUnmount() {
