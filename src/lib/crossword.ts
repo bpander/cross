@@ -2,11 +2,12 @@ import assignWith from 'lodash/assignWith';
 import groupBy from 'lodash/groupBy';
 import includes from 'lodash/includes';
 import keyBy from 'lodash/keyBy';
+// import chunk from 'lodash/chunk';
 
 import { BLACK_SYMBOL } from 'config/global';
 import Dictionary from 'definitions/Dictionary';
 import { invert, mapValues, values } from 'util/objects';
-// import chunk from 'lodash/chunk';
+import { Trie, some, count } from 'lib/tries';
 
 export enum Direction {
   Across = 'A',
@@ -177,29 +178,50 @@ export const getAnswerMap_v2 = (board: Board): Dictionary<Answer> => {
   return keyBy(answers, 'id');
 };
 
-type AutoFillResult = { success: false; } | { success: true; grid: string[]; } | { success: undefined };
+type AutoFillResult = { success: false; } | { success: true; grid: string[]; };
 
 const fillWordAt = (grid: string[], word: string, answer: Answer): string[] => {
   const gridCopy = [ ...grid ];
   answer.cells.forEach((cell, i) => {
-    gridCopy[cell] = word[i];
+    gridCopy[cell] = word.slice(i, i + 1);
   });
   return gridCopy;
 };
 
-const strMatch = (grid: string[], answer: Answer, candidate: string): boolean => {
-  for (let i = 0; i < answer.cells.length; i++) {
-    if (grid[answer.cells[i]] && grid[answer.cells[i]] !== candidate[i]) {
-      return false;
-    }
-  }
-  return true;
+// const strMatch = (grid: string[], answer: Answer, candidate: string): boolean => {
+//   for (let i = 0; i < answer.cells.length; i++) {
+//     if (grid[answer.cells[i]] && grid[answer.cells[i]] !== candidate[i]) {
+//       return false;
+//     }
+//   }
+//   return true;
+// };
+
+const isEmpty = (chars: string[]): boolean => {
+  return chars.every(char => char === '');
 };
 
-export const autoFill = (grid: string[], answers: Answer[], dictionary: Dictionary<string[]>): AutoFillResult => {
+export const autoFill = (grid: string[], answers: Answer[], dictionary: Dictionary<Trie>, fittingWords: { [id: string]: number; }, closed: { [id: string]: boolean; }): AutoFillResult => {
   let res: AutoFillResult = { success: false };
-  const openSet = [ ...answers ];
-  const answer = openSet.shift();
+  let answer: Answer | undefined;
+  let previousMin = Infinity;
+  const hasZero = answers.some(a => {
+    if (closed[a.id]) {
+      return false;
+    }
+    const count = fittingWords[a.id];
+    if (count === 0) {
+      return true;
+    }
+    if (count < previousMin) {
+      answer = a;
+      previousMin = count;
+    }
+    return false;
+  });
+  if (hasZero) {
+    return { success: false };
+  }
   if (!answer) {
     return { success: true, grid };
   }
@@ -207,23 +229,22 @@ export const autoFill = (grid: string[], answers: Answer[], dictionary: Dictiona
   if (!candidates) {
     return { success: false };
   }
-  candidates.some(candidate => {
-    if (!strMatch(grid, answer, candidate)) {
-      return false;
-    }
-    const g = fillWordAt(grid, candidate, answer);
-    const isValid = answer.intersections.every(answerId => {
-      const otherAnswer = answers.find(a => a.id === answerId);
-      if (!otherAnswer) {
-        return true;
+  some(candidates, answer.cells.map(c => grid[c]), candidate => {
+    const g = fillWordAt(grid, candidate, answer!);
+    const closedClone = { ...closed, [answer!.id]: true };
+    const fittingWordsClone = { ...fittingWords, [answer!.id]: 1 };
+    answer!.intersections.forEach(answerId => {
+      if (closedClone[answerId]) {
+        return;
       }
-      return candidates.some(c => strMatch(g, otherAnswer, c));
+      const otherAnswer = answers.find(a => a.id === answerId)!;
+      const pattern = otherAnswer.cells.map(c => g[c]);
+      if (!isEmpty(pattern)) {
+        fittingWordsClone[answerId] = count(candidates, pattern);
+      }
     });
-    if (!isValid) {
-      return false;
-    }
-    res = autoFill(g, openSet, dictionary);
-    return res.success === true;
+    res = autoFill(g, answers, dictionary, fittingWordsClone, closedClone);
+    return res.success;
   });
 
   return res;

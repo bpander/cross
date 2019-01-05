@@ -57,3 +57,28 @@ export const some = (trie: Trie, pattern: string[], predicate: Predicate, i = 0,
   }
   return some(subTrie, pattern, predicate, i + 1, prefix + patternChar);
 };
+
+export const count = (trie: Trie, pattern: string[], i = 0): number => {
+  const char = pattern[i];
+  if (i === pattern.length - 1) {
+    if (char === WILDCARD_SYMBOL) {
+      return Object.keys(trie.children).length;
+    }
+    if (trie.children[char]) {
+      return 1;
+    }
+    return 0;
+  }
+  let n = 0;
+  if (char === WILDCARD_SYMBOL) {
+    for (const key in trie.children) {
+      n += count(trie.children[key], pattern, i + 1);
+    }
+    return n;
+  }
+  const subTrie = trie.children[char];
+  if (!subTrie) {
+    return 0;
+  }
+  return count(subTrie, pattern, i + 1);
+};

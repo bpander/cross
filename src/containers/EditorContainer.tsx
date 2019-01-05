@@ -1,6 +1,4 @@
-import chunk from 'lodash/chunk';
 import clamp from 'lodash/clamp';
-import values from 'lodash/values';
 import React from 'react';
 import { connect } from 'react-redux';
 import { Route } from 'react-router';
@@ -15,6 +13,9 @@ import dictTxt from 'data/dict.txt';
 import { autoFill, getAnswerMap_v2 } from 'lib/crossword';
 import * as boardModule from 'redux-modules/board';
 import { getIndex, getXY } from 'util/grid2Ds';
+import { Trie, add } from 'lib/tries';
+import { values } from 'util/objects';
+import { chunk } from 'lodash';
 
 type EditorProps = ContainerProps<{ puzzleId?: string; }>;
 
@@ -55,15 +56,26 @@ class EditorContainer extends React.Component<EditorProps, EditorContainerState>
     const response = await fetch(dictTxt);
     const dictStr = await response.text();
     const words = dictStr.split('\n');
-    const wordsJumbled = [ ...words ].sort(() => 1 - Math.round(Math.random() * 2));
+    const trie: Trie = { children: {} };
+    words.forEach(word => add(trie, word));
 
     const answerMap = getAnswerMap_v2(this.props.board);
-    const uncheckedAnswers = values(answerMap).filter(
-      answer => answer.cells.some(cell => this.props.board.grid[cell] === ''),
-    );
+    // const uncheckedAnswers = values(answerMap).filter(
+    //   answer => answer.cells.some(cell => this.props.board.grid[cell] === ''),
+    // );
 
+    const shouldRun = true;
+    if (!shouldRun) {
+      console.log('off');
+      return;
+    }
+
+    const fittingWords: { [id: string]: number; } = {};
+    Object.keys(answerMap).forEach(key => {
+      fittingWords[key] = words.length;
+    });
     console.log('starting fill...');
-    const fillResult = autoFill(this.props.board.grid, uncheckedAnswers, { 5: wordsJumbled });
+    const fillResult = autoFill(this.props.board.grid, values(answerMap), { 5: trie }, fittingWords, {});
     console.log({ fillResult });
     if (fillResult.success) {
       console.log(chunk(fillResult.grid, this.props.board.size));
