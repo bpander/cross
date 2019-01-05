@@ -201,7 +201,7 @@ const isEmpty = (chars: string[]): boolean => {
   return chars.every(char => char === '');
 };
 
-export const autoFill = (grid: string[], answers: Answer[], dictionary: Dictionary<Trie>, fittingWords: { [id: string]: number; }, closed: { [id: string]: boolean; }): AutoFillResult => {
+export const autoFill = (grid: string[], answers: Answer[], dictionary: Dictionary<Trie>, fittingWords: { [id: string]: number; }, closed: { [id: string]: boolean; }, wordsUsed: string[]): AutoFillResult => {
   let res: AutoFillResult = { success: false };
   let answer: Answer | undefined;
   let previousMin = Infinity;
@@ -230,6 +230,9 @@ export const autoFill = (grid: string[], answers: Answer[], dictionary: Dictiona
     return { success: false };
   }
   some(candidates, answer.cells.map(c => grid[c]), candidate => {
+    if (wordsUsed.indexOf(candidate) !== -1) {
+      return false;
+    }
     const g = fillWordAt(grid, candidate, answer!);
     const closedClone = { ...closed, [answer!.id]: true };
     const fittingWordsClone = { ...fittingWords, [answer!.id]: 1 };
@@ -240,10 +243,10 @@ export const autoFill = (grid: string[], answers: Answer[], dictionary: Dictiona
       const otherAnswer = answers.find(a => a.id === answerId)!;
       const pattern = otherAnswer.cells.map(c => g[c]);
       if (!isEmpty(pattern)) {
-        fittingWordsClone[answerId] = count(candidates, pattern);
+        fittingWordsClone[answerId] = count(dictionary[pattern.length], pattern);
       }
     });
-    res = autoFill(g, answers, dictionary, fittingWordsClone, closedClone);
+    res = autoFill(g, answers, dictionary, fittingWordsClone, closedClone, [ ...wordsUsed, candidate ]);
     return res.success;
   });
 

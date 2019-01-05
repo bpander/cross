@@ -2,6 +2,8 @@ import clamp from 'lodash/clamp';
 import React from 'react';
 import { connect } from 'react-redux';
 import { Route } from 'react-router';
+import groupBy from 'lodash/groupBy';
+import inRange from 'lodash/inRange';
 
 import Grid from 'components/Grid';
 import Tabs, { Tab } from 'components/Tabs';
@@ -14,8 +16,7 @@ import { autoFill, getAnswerMap_v2 } from 'lib/crossword';
 import * as boardModule from 'redux-modules/board';
 import { getIndex, getXY } from 'util/grid2Ds';
 import { Trie, add } from 'lib/tries';
-import { values } from 'util/objects';
-import { chunk } from 'lodash';
+import { values, mapValues } from 'util/objects';
 
 type EditorProps = ContainerProps<{ puzzleId?: string; }>;
 
@@ -55,14 +56,25 @@ class EditorContainer extends React.Component<EditorProps, EditorContainerState>
     window.addEventListener('keydown', this.onKeyDown);
     const response = await fetch(dictTxt);
     const dictStr = await response.text();
-    const words = dictStr.split('\n');
-    const trie: Trie = { children: {} };
-    words.forEach(word => add(trie, word));
+    const re = /[^a-zA-Z]/gi;
+    const words = dictStr.split('\n').map(entry => entry.replace(re, '').toUpperCase()).filter(w => inRange(w.length, 3, 16));
+    const wordsGrouped = groupBy(words, 'length');
+    const dict = mapValues(wordsGrouped, group => {
+      const trie: Trie = { children: {} };
+      group.forEach(word => add(trie, word));
+      return trie;
+    });
 
     const answerMap = getAnswerMap_v2(this.props.board);
     // const uncheckedAnswers = values(answerMap).filter(
     //   answer => answer.cells.some(cell => this.props.board.grid[cell] === ''),
     // );
+
+    const fittingWords: { [id: string]: number; } = {};
+    Object.keys(answerMap).forEach(key => {
+      fittingWords[key] = wordsGrouped[answerMap[key].cells.length].length;
+    });
+    console.log(fittingWords);
 
     const shouldRun = true;
     if (!shouldRun) {
@@ -70,15 +82,16 @@ class EditorContainer extends React.Component<EditorProps, EditorContainerState>
       return;
     }
 
-    const fittingWords: { [id: string]: number; } = {};
-    Object.keys(answerMap).forEach(key => {
-      fittingWords[key] = words.length;
-    });
+    const start = Date.now();
     console.log('starting fill...');
-    const fillResult = autoFill(this.props.board.grid, values(answerMap), { 5: trie }, fittingWords, {});
+    const fillResult = autoFill(this.props.board.grid, values(answerMap), dict, fittingWords, {}, []);
     console.log({ fillResult });
+    console.log('filled in', Date.now() - start, 'ms');
     if (fillResult.success) {
-      console.log(chunk(fillResult.grid, this.props.board.size));
+      values(answerMap).forEach(answer => {
+        const word = answer.cells.map(c => fillResult.grid[c]).join('');
+        console.log(word, words.indexOf(word));
+      });
     }
   }
 

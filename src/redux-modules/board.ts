@@ -9,12 +9,12 @@ import { getIndex, getXY, reflectXY } from 'util/grid2Ds';
 const initialState: BoardState = {
   author: null,
   title: null,
-  size: 5, // TODO: Maybe this could be derived from sqrt(grid.length)?
+  size: 15, // TODO: Maybe this could be derived from sqrt(grid.length)?
   clues: {
     across: [],
     down: [],
   },
-  grid: times(5 ** 2, () => ''),
+  grid: times(15 ** 2, () => ''),
   cursor: 0,
   direction: Direction.Across,
 };
