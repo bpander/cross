@@ -83,8 +83,8 @@ class EditorContainer extends React.Component<EditorProps, EditorContainerState>
     }
 
     const start = Date.now();
-    console.log('starting fill...');
-    const fillResult = autoFill(this.props.board.grid, values(answerMap), dict, fittingWords, {}, []);
+    console.log('starting fill...', values(answerMap).length);
+    const fillResult = autoFill(this.props.board.grid, values(answerMap), dict, fittingWords, {});
     console.log({ fillResult });
     console.log('filled in', Date.now() - start, 'ms');
     if (fillResult.success) {

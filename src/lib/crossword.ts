@@ -197,11 +197,20 @@ const fillWordAt = (grid: string[], word: string, answer: Answer): string[] => {
 //   return true;
 // };
 
-const isEmpty = (chars: string[]): boolean => {
-  return chars.every(char => char === '');
+// const isEmpty = (chars: string[]): boolean => {
+//   return chars.every(char => char === '');
+// };
+
+const objIncludes = <T>(o: Dictionary<T>, needle: T): boolean => {
+  for (const key in o) {
+    if (o[key] === needle) {
+      return true;
+    }
+  }
+  return false;
 };
 
-export const autoFill = (grid: string[], answers: Answer[], dictionary: Dictionary<Trie>, fittingWords: { [id: string]: number; }, closed: { [id: string]: boolean; }, wordsUsed: string[]): AutoFillResult => {
+export const autoFill = (grid: string[], answers: Answer[], dictionary: Dictionary<Trie>, fittingWords: { [id: string]: number; }, closed: { [id: string]: string; }): AutoFillResult => {
   let res: AutoFillResult = { success: false };
   let answer: Answer | undefined;
   let previousMin = Infinity;
@@ -226,15 +235,16 @@ export const autoFill = (grid: string[], answers: Answer[], dictionary: Dictiona
     return { success: true, grid };
   }
   const candidates = dictionary[answer.cells.length];
-  if (!candidates) {
-    return { success: false };
-  }
+  // if (!candidates) {
+  //   return { success: false };
+  // }
   some(candidates, answer.cells.map(c => grid[c]), candidate => {
-    if (wordsUsed.indexOf(candidate) !== -1) {
+    if (objIncludes(closed, candidate)) {
       return false;
     }
+    console.log(Object.keys(closed).length);
     const g = fillWordAt(grid, candidate, answer!);
-    const closedClone = { ...closed, [answer!.id]: true };
+    const closedClone = { ...closed, [answer!.id]: candidate };
     const fittingWordsClone = { ...fittingWords, [answer!.id]: 1 };
     answer!.intersections.forEach(answerId => {
       if (closedClone[answerId]) {
@@ -242,11 +252,11 @@ export const autoFill = (grid: string[], answers: Answer[], dictionary: Dictiona
       }
       const otherAnswer = answers.find(a => a.id === answerId)!;
       const pattern = otherAnswer.cells.map(c => g[c]);
-      if (!isEmpty(pattern)) {
+      // if (!isEmpty(pattern)) {
         fittingWordsClone[answerId] = count(dictionary[pattern.length], pattern);
-      }
+      // }
     });
-    res = autoFill(g, answers, dictionary, fittingWordsClone, closedClone, [ ...wordsUsed, candidate ]);
+    res = autoFill(g, answers, dictionary, fittingWordsClone, closedClone);
     return res.success;
   });
 
