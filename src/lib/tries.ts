@@ -1,4 +1,5 @@
 export interface Trie {
+  size: number;
   children: { [char: string]: Trie };
 }
 
@@ -16,9 +17,11 @@ export const add = (trie: Trie, key: string) => {
 
   while (curChar.length > 0) {
     let newNode: Trie = {
+      size: 0,
       children : {},
     };
     curNode.children[curChar] = newNode;
+    curNode.size++;
     curNode = newNode;
     curChar = key.slice(0,1);
     key = key.slice(1);
@@ -62,7 +65,7 @@ export const count = (trie: Trie, pattern: string[], i = 0): number => {
   const char = pattern[i];
   if (i === pattern.length - 1) {
     if (char === WILDCARD_SYMBOL) {
-      return Object.keys(trie.children).length;
+      return trie.size;
     }
     if (trie.children[char]) {
       return 1;

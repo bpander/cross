@@ -242,7 +242,6 @@ export const autoFill = (grid: string[], answers: Answer[], dictionary: Dictiona
     if (objIncludes(closed, candidate)) {
       return false;
     }
-    console.log(Object.keys(closed).length);
     const g = fillWordAt(grid, candidate, answer!);
     const closedClone = { ...closed, [answer!.id]: candidate };
     const fittingWordsClone = { ...fittingWords, [answer!.id]: 1 };

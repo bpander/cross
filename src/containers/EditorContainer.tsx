@@ -60,7 +60,7 @@ class EditorContainer extends React.Component<EditorProps, EditorContainerState>
     const words = dictStr.split('\n').map(entry => entry.replace(re, '').toUpperCase()).filter(w => inRange(w.length, 3, 16));
     const wordsGrouped = groupBy(words, 'length');
     const dict = mapValues(wordsGrouped, group => {
-      const trie: Trie = { children: {} };
+      const trie: Trie = { children: {}, size: 0 };
       group.forEach(word => add(trie, word));
       return trie;
     });
@@ -76,7 +76,7 @@ class EditorContainer extends React.Component<EditorProps, EditorContainerState>
     });
     console.log(fittingWords);
 
-    const shouldRun = true;
+    const shouldRun = false;
     if (!shouldRun) {
       console.log('off');
       return;
