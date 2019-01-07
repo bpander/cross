@@ -10,6 +10,7 @@ export const add = (trie: Trie, key: string) => {
   key = key.slice(1);
 
   while (curNode.children[curChar] !== undefined && curChar.length > 0) {
+    curNode.size++;
     curNode = curNode.children[curChar];
     curChar = key.slice(0,1);
     key = key.slice(1);
