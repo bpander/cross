@@ -3,86 +3,76 @@ export interface Trie {
   children: { [char: string]: Trie };
 }
 
-export const add = (trie: Trie, key: string) => {
-  let curNode = trie;
-  let curChar = key.slice(0,1);
-
-  key = key.slice(1);
-
-  while (curNode.children[curChar] !== undefined && curChar.length > 0) {
-    curNode.size++;
-    curNode = curNode.children[curChar];
-    curChar = key.slice(0,1);
-    key = key.slice(1);
+export const add = (trie: Trie, str: string, i = 0) => {
+  if (i === str.length) {
+    return emptyTrie;
   }
+  const char = str.slice(i, i + 1);
+  const subTrie = trie.children[char] || { size: 0, children: {} };
 
-  while (curChar.length > 0) {
-    let newNode: Trie = {
-      size: 0,
-      children : {},
-    };
-    curNode.children[curChar] = newNode;
-    curNode.size++;
-    curNode = newNode;
-    curChar = key.slice(0,1);
-    key = key.slice(1);
-  }
+  const newTrie: Trie = {
+    size: trie.size + 1,
+    children: {
+      ...trie.children,
+      [char]: add(subTrie, str, i + 1),
+    },
+  };
+  return newTrie;
 };
 
 interface Predicate {
   (chars: string): boolean;
 }
-const WILDCARD_SYMBOL = '';
 
-export const some = (trie: Trie, pattern: string[], predicate: Predicate, i = 0, prefix = ''): boolean => {
-  const patternChar = pattern[i];
-  if (i === pattern.length - 1) {
-    if (patternChar === WILDCARD_SYMBOL) {
-      return Object.keys(trie.children).some(char => predicate(prefix + char));
-    }
-    const char = trie.children[patternChar];
-    if (char) {
-      return predicate(prefix + patternChar);
-    }
-    return false;
-  }
-
-  if (patternChar === WILDCARD_SYMBOL) {
-    for (const key in trie.children) {
-      if (some(trie.children[key], pattern, predicate, i + 1, prefix + key)) {
-        return true;
-      }
+const objSome = <T>(obj: { [key: string]: T }, predicate: Predicate): boolean => {
+  for (let key in obj) {
+    if (predicate(key)) {
+      return true;
     }
   }
-
-  const subTrie = trie.children[patternChar];
-  if (!subTrie) {
-    return false;
-  }
-  return some(subTrie, pattern, predicate, i + 1, prefix + patternChar);
+  return false;
 };
 
-export const count = (trie: Trie, pattern: string[], i = 0): number => {
-  const char = pattern[i];
-  if (i === pattern.length - 1) {
-    if (char === WILDCARD_SYMBOL) {
-      return trie.size;
-    }
-    if (trie.children[char]) {
-      return 1;
-    }
-    return 0;
+export const some = (trie: Trie, depth: number, predicate: Predicate, i = 0, prefix = ''): boolean => {
+  if (i === depth) {
+    return objSome(trie.children, char => predicate(prefix + char));
   }
-  let n = 0;
-  if (char === WILDCARD_SYMBOL) {
-    for (const key in trie.children) {
-      n += count(trie.children[key], pattern, i + 1);
+
+  for (const key in trie.children) {
+    if (some(trie.children[key], depth, predicate, i + 1, prefix + key)) {
+      return true;
     }
-    return n;
   }
-  const subTrie = trie.children[char];
-  if (!subTrie) {
-    return 0;
+
+  return false;
+};
+
+const emptyTrie = { children: {}, size: 0 };
+
+export const only = (trie: Trie, depth: number, char: string, i = 0): Trie => {
+  if (i === depth) {
+    const subTrie: Trie = trie.children[char];
+    if (subTrie) {
+      const clone: Trie = {
+        children: { [char]: subTrie },
+        size: subTrie.size,
+      };
+      return clone;
+    }
+    return emptyTrie;
   }
-  return count(subTrie, pattern, i + 1);
+
+  const clone = { children: { ...trie.children }, size: trie.size };
+  for (const key in trie.children) {
+    const oldSubTrie = trie.children[key];
+    const newSubTrie = only(oldSubTrie, depth, char, i + 1);
+    if (newSubTrie.size > 0) {
+      clone.size = clone.size - (oldSubTrie.size - newSubTrie.size);
+      clone.children[key] = newSubTrie;
+    } else {
+      delete clone.children[key];
+      clone.size = clone.size - oldSubTrie.size;
+    }
+  }
+  return clone;
 };

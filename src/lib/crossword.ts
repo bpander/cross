@@ -1,13 +1,11 @@
 import assignWith from 'lodash/assignWith';
 import groupBy from 'lodash/groupBy';
-import includes from 'lodash/includes';
 import keyBy from 'lodash/keyBy';
-// import chunk from 'lodash/chunk';
 
 import { BLACK_SYMBOL } from 'config/global';
 import Dictionary from 'definitions/Dictionary';
 import { invert, mapValues, values } from 'util/objects';
-import { Trie, some, count } from 'lib/tries';
+import { Trie, some, add, only } from 'lib/tries';
 
 export enum Direction {
   Across = 'A',
@@ -127,13 +125,20 @@ export const getWordCounts = (answerMap: AnswerMap): WordCountMap => {
   return wordCounts;
 };
 
+interface Intersection {
+  id: string;
+  index: number;
+  otherId: string;
+  otherIndex: number;
+}
+
 type Cell = number;
 interface Answer {
   id: string;
   clue: number;
   direction: Direction;
   cells: Cell[];
-  intersections: string[];
+  intersections: Intersection[];
 }
 
 const isClueStart = (board: Board, cell: number, direction: Direction): boolean => {
@@ -166,12 +171,26 @@ export const getAnswerMap_v2 = (board: Board): Dictionary<Answer> => {
   const openSet = [ ...answers ];
   let answer: Answer | undefined;
   while (answer = openSet.shift()) {
-    answer.cells.forEach(cell => {
-      const intersectedAnswer = openSet.find(otherAnswer => includes(otherAnswer.cells, cell));
-      if (intersectedAnswer) {
-        intersectedAnswer.intersections.push(answer!.id);
-        answer!.intersections.push(intersectedAnswer.id);
-      }
+    answer.cells.forEach((cell, i) => {
+      openSet.some(otherAnswer => {
+        const otherAnswerIntersectionIndex = otherAnswer.cells.indexOf(cell);
+        if (otherAnswerIntersectionIndex === -1) {
+          return false;
+        }
+        otherAnswer.intersections.push({
+          id: otherAnswer.id,
+          index: otherAnswerIntersectionIndex,
+          otherId: answer!.id,
+          otherIndex: i,
+        });
+        answer!.intersections.push({
+          id: answer!.id,
+          index: i,
+          otherId: otherAnswer.id,
+          otherIndex: otherAnswerIntersectionIndex,
+        });
+        return true;
+      });
     });
   }
 
@@ -210,7 +229,7 @@ const objIncludes = <T>(o: Dictionary<T>, needle: T): boolean => {
   return false;
 };
 
-export const autoFill = (grid: string[], answers: Answer[], dictionary: Dictionary<Trie>, fittingWords: { [id: string]: number; }, closed: { [id: string]: string; }): AutoFillResult => {
+export const autoFill = (grid: string[], answers: Answer[], fittingWords: { [id: string]: Trie; }, closed: { [id: string]: string; }): AutoFillResult => {
   let res: AutoFillResult = { success: false };
   let answer: Answer | undefined;
   let previousMin = Infinity;
@@ -218,8 +237,8 @@ export const autoFill = (grid: string[], answers: Answer[], dictionary: Dictiona
     if (closed[a.id]) {
       return false;
     }
-    const count = fittingWords[a.id];
-    if (count === 0) {
+    const count = fittingWords[a.id].size;
+    if (count <= 0) {
       return true;
     }
     if (count < previousMin) {
@@ -234,28 +253,39 @@ export const autoFill = (grid: string[], answers: Answer[], dictionary: Dictiona
   if (!answer) {
     return { success: true, grid };
   }
-  const candidates = dictionary[answer.cells.length];
   // if (!candidates) {
   //   return { success: false };
   // }
-  some(candidates, answer.cells.map(c => grid[c]), candidate => {
+  some(fittingWords[answer.id], answer.cells.length - 1, candidate => {
     if (objIncludes(closed, candidate)) {
       return false;
     }
     const g = fillWordAt(grid, candidate, answer!);
     const closedClone = { ...closed, [answer!.id]: candidate };
-    const fittingWordsClone = { ...fittingWords, [answer!.id]: 1 };
-    answer!.intersections.forEach(answerId => {
-      if (closedClone[answerId]) {
+    const fittingWordsClone: Dictionary<Trie> = {
+      ...fittingWords,
+      [answer!.id]: add({ size: 0, children: {} }, candidate),
+    };
+    answer!.intersections.forEach(intersection => {
+      if (closedClone[intersection.otherId]) {
         return;
       }
-      const otherAnswer = answers.find(a => a.id === answerId)!;
-      const pattern = otherAnswer.cells.map(c => g[c]);
-      // if (!isEmpty(pattern)) {
-        fittingWordsClone[answerId] = count(dictionary[pattern.length], pattern);
-      // }
+      fittingWordsClone[intersection.otherId] = only(
+        fittingWordsClone[intersection.otherId],
+        intersection.otherIndex,
+        g[answer!.cells[intersection.index]],
+      );
+      if (fittingWordsClone[intersection.otherId].size === 0) {
+        console.log('===');
+        console.log({ candidate, answer });
+        console.log('other id', intersection.otherId);
+        console.log(fittingWords[intersection.otherId]);
+        console.log(intersection.otherIndex);
+        console.log(g[answer!.cells[intersection.index]]);
+        debugger;
+      }
     });
-    res = autoFill(g, answers, dictionary, fittingWordsClone, closedClone);
+    res = autoFill(g, answers, fittingWordsClone, closedClone);
     return res.success;
   });
 

@@ -59,10 +59,9 @@ class EditorContainer extends React.Component<EditorProps, EditorContainerState>
     const re = /[^a-zA-Z]/gi;
     const words = dictStr.split('\n').map(entry => entry.replace(re, '').toUpperCase()).filter(w => inRange(w.length, 3, 16));
     const wordsGrouped = groupBy(words, 'length');
+    const trie: Trie = { children: {}, size: 0 };
     const dict = mapValues(wordsGrouped, group => {
-      const trie: Trie = { children: {}, size: 0 };
-      group.forEach(word => add(trie, word));
-      return trie;
+      return group.reduce((p, word) => add(p, word), trie);
     });
 
     const answerMap = getAnswerMap_v2(this.props.board);
@@ -70,13 +69,13 @@ class EditorContainer extends React.Component<EditorProps, EditorContainerState>
     //   answer => answer.cells.some(cell => this.props.board.grid[cell] === ''),
     // );
 
-    const fittingWords: { [id: string]: number; } = {};
+    const fittingWords: { [id: string]: Trie; } = {};
     Object.keys(answerMap).forEach(key => {
-      fittingWords[key] = wordsGrouped[answerMap[key].cells.length].length;
+      fittingWords[key] = dict[answerMap[key].cells.length];
     });
     console.log(fittingWords);
 
-    const shouldRun = false;
+    const shouldRun = true;
     if (!shouldRun) {
       console.log('off');
       return;
@@ -84,7 +83,7 @@ class EditorContainer extends React.Component<EditorProps, EditorContainerState>
 
     const start = Date.now();
     console.log('starting fill...', values(answerMap).length);
-    const fillResult = autoFill(this.props.board.grid, values(answerMap), dict, fittingWords, {});
+    const fillResult = autoFill(this.props.board.grid, values(answerMap), fittingWords, {});
     console.log({ fillResult });
     console.log('filled in', Date.now() - start, 'ms');
     if (fillResult.success) {
