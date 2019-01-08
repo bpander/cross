@@ -233,29 +233,20 @@ export const autoFill = (grid: string[], answers: Answer[], fittingWords: { [id:
   let res: AutoFillResult = { success: false };
   let answer: Answer | undefined;
   let previousMin = Infinity;
-  const hasZero = answers.some(a => {
+  answers.forEach(a => {
     if (closed[a.id]) {
       return false;
     }
     const count = fittingWords[a.id].size;
-    if (count <= 0) {
-      return true;
-    }
     if (count < previousMin) {
       answer = a;
       previousMin = count;
     }
     return false;
   });
-  if (hasZero) {
-    return { success: false };
-  }
   if (!answer) {
     return { success: true, grid };
   }
-  // if (!candidates) {
-  //   return { success: false };
-  // }
   some(fittingWords[answer.id], answer.cells.length - 1, candidate => {
     if (objIncludes(closed, candidate)) {
       return false;
@@ -266,20 +257,20 @@ export const autoFill = (grid: string[], answers: Answer[], fittingWords: { [id:
       ...fittingWords,
       [answer!.id]: add({ size: 0, children: {} }, candidate),
     };
-    answer!.intersections.forEach(intersection => {
+    const hasZero = answer!.intersections.some(intersection => {
       if (closedClone[intersection.otherId]) {
-        return;
+        return false;
       }
       fittingWordsClone[intersection.otherId] = only(
         fittingWordsClone[intersection.otherId],
         intersection.otherIndex,
         g[answer!.cells[intersection.index]],
       );
-      if (fittingWordsClone[intersection.otherId].size === 0) {
-        // TODO quit early here
-      }
+      return fittingWordsClone[intersection.otherId].size === 0;
     });
-    res = autoFill(g, answers, fittingWordsClone, closedClone);
+    if (!hasZero) {
+      res = autoFill(g, answers, fittingWordsClone, closedClone);
+    }
     return res.success;
   });
 
