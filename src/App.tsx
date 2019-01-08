@@ -9,7 +9,7 @@ class App extends React.Component {
   componentDidMount() {
     const words = [
       'about',
-      'after',
+      'abets',
       'dares',
       'first',
       'going',
@@ -19,14 +19,14 @@ class App extends React.Component {
       'still',
       'there',
       'think',
-      'wirer',
+      'eberz',
     ];
     console.log(words.length, 'words');
     const all: Trie = words.reduce((p, c) => add(p, c), { size: 0, children: {} });
     const sum = Object.keys(all.children).reduce((p, c) => p + all.children[c].size, 0);
     console.log({ sum });
     console.log(all);
-    console.log(only(all, 1, 'h'));
+    console.log(only(all, 1, 'b'));
   }
 
   render() {

@@ -55,7 +55,7 @@ export const only = (trie: Trie, depth: number, char: string, i = 0): Trie => {
     if (subTrie) {
       const clone: Trie = {
         children: { [char]: subTrie },
-        size: subTrie.size,
+        size: subTrie.size || 1,
       };
       return clone;
     }

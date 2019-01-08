@@ -276,13 +276,7 @@ export const autoFill = (grid: string[], answers: Answer[], fittingWords: { [id:
         g[answer!.cells[intersection.index]],
       );
       if (fittingWordsClone[intersection.otherId].size === 0) {
-        console.log('===');
-        console.log({ candidate, answer });
-        console.log('other id', intersection.otherId);
-        console.log(fittingWords[intersection.otherId]);
-        console.log(intersection.otherIndex);
-        console.log(g[answer!.cells[intersection.index]]);
-        debugger;
+        // TODO quit early here
       }
     });
     res = autoFill(g, answers, fittingWordsClone, closedClone);
