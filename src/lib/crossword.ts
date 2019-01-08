@@ -235,14 +235,13 @@ export const autoFill = (grid: string[], answers: Answer[], fittingWords: { [id:
   let previousMin = Infinity;
   answers.forEach(a => {
     if (closed[a.id]) {
-      return false;
+      return;
     }
     const count = fittingWords[a.id].size;
     if (count < previousMin) {
       answer = a;
       previousMin = count;
     }
-    return false;
   });
   if (!answer) {
     return { success: true, grid };
@@ -261,10 +260,11 @@ export const autoFill = (grid: string[], answers: Answer[], fittingWords: { [id:
       if (closedClone[intersection.otherId]) {
         return false;
       }
+      const char = g[answer!.cells[intersection.index]];
       fittingWordsClone[intersection.otherId] = only(
         fittingWordsClone[intersection.otherId],
         intersection.otherIndex,
-        g[answer!.cells[intersection.index]],
+        char,
       );
       return fittingWordsClone[intersection.otherId].size === 0;
     });
