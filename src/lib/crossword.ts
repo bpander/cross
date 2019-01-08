@@ -5,7 +5,6 @@ import keyBy from 'lodash/keyBy';
 import { BLACK_SYMBOL } from 'config/global';
 import Dictionary from 'definitions/Dictionary';
 import { invert, mapValues, values } from 'util/objects';
-import { Trie, some, add, only } from 'lib/tries';
 
 export enum Direction {
   Across = 'A',
@@ -220,24 +219,29 @@ const fillWordAt = (grid: string[], word: string, answer: Answer): string[] => {
 //   return chars.every(char => char === '');
 // };
 
-const objIncludes = <T>(o: Dictionary<T>, needle: T): boolean => {
-  for (const key in o) {
-    if (o[key] === needle) {
-      return true;
-    }
-  }
-  return false;
+// const objIncludes = <T>(o: Dictionary<T>, needle: T): boolean => {
+//   for (const key in o) {
+//     if (o[key] === needle) {
+//       return true;
+//     }
+//   }
+//   return false;
+// };
+
+const only = (words: string[], index: number, char: string): string[] => {
+  return words.filter(word => word.slice(index, index + 1) === char);
 };
 
-export const autoFill = (grid: string[], answers: Answer[], fittingWords: { [id: string]: Trie; }, closed: { [id: string]: string; }): AutoFillResult => {
+export const autoFill = (grid: string[], answers: Answer[], fittingWords: { [id: string]: string[] | null; }, usedWords: string[]): AutoFillResult => {
   let res: AutoFillResult = { success: false };
   let answer: Answer | undefined;
   let previousMin = Infinity;
   answers.forEach(a => {
-    if (closed[a.id]) {
+    const words = fittingWords[a.id];
+    if (!words) {
       return;
     }
-    const count = fittingWords[a.id].size;
+    const count = words.length;
     if (count < previousMin) {
       answer = a;
       previousMin = count;
@@ -246,30 +250,27 @@ export const autoFill = (grid: string[], answers: Answer[], fittingWords: { [id:
   if (!answer) {
     return { success: true, grid };
   }
-  some(fittingWords[answer.id], answer.cells.length - 1, candidate => {
-    if (objIncludes(closed, candidate)) {
+  fittingWords[answer.id]!.some(candidate => {
+    if (usedWords.indexOf(candidate) > -1) {
       return false;
     }
     const g = fillWordAt(grid, candidate, answer!);
-    const closedClone = { ...closed, [answer!.id]: candidate };
-    const fittingWordsClone: Dictionary<Trie> = {
+    const fittingWordsClone: Dictionary<string[] | null> = {
       ...fittingWords,
-      [answer!.id]: add({ size: 0, children: {} }, candidate),
+      [answer!.id]: null,
     };
     const hasZero = answer!.intersections.some(intersection => {
-      if (closedClone[intersection.otherId]) {
+      const words = fittingWordsClone[intersection.otherId];
+      if (!words) {
         return false;
       }
       const char = g[answer!.cells[intersection.index]];
-      fittingWordsClone[intersection.otherId] = only(
-        fittingWordsClone[intersection.otherId],
-        intersection.otherIndex,
-        char,
-      );
-      return fittingWordsClone[intersection.otherId].size === 0;
+      const newWords = only(words, intersection.otherIndex, char)
+      fittingWordsClone[intersection.otherId] = newWords;
+      return newWords.length === 0;
     });
     if (!hasZero) {
-      res = autoFill(g, answers, fittingWordsClone, closedClone);
+      res = autoFill(g, answers, fittingWordsClone, [ ...usedWords, candidate ]);
     }
     return res.success;
   });

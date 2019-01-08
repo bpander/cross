@@ -15,8 +15,7 @@ import dictTxt from 'data/dict.txt';
 import { autoFill, getAnswerMap_v2 } from 'lib/crossword';
 import * as boardModule from 'redux-modules/board';
 import { getIndex, getXY } from 'util/grid2Ds';
-import { Trie, add } from 'lib/tries';
-import { values, mapValues } from 'util/objects';
+import { values } from 'util/objects';
 
 type EditorProps = ContainerProps<{ puzzleId?: string; }>;
 
@@ -59,19 +58,15 @@ class EditorContainer extends React.Component<EditorProps, EditorContainerState>
     const re = /[^a-zA-Z]/gi;
     const words = dictStr.split('\n').map(entry => entry.replace(re, '').toUpperCase()).filter(w => inRange(w.length, 3, 16));
     const wordsGrouped = groupBy(words, 'length');
-    const trie: Trie = { children: {}, size: 0 };
-    const dict = mapValues(wordsGrouped, group => {
-      return group.reduce((p, word) => add(p, word), trie);
-    });
 
     const answerMap = getAnswerMap_v2(this.props.board);
     // const uncheckedAnswers = values(answerMap).filter(
     //   answer => answer.cells.some(cell => this.props.board.grid[cell] === ''),
     // );
 
-    const fittingWords: { [id: string]: Trie; } = {};
+    const fittingWords: { [id: string]: string[]; } = {};
     Object.keys(answerMap).forEach(key => {
-      fittingWords[key] = dict[answerMap[key].cells.length];
+      fittingWords[key] = wordsGrouped[answerMap[key].cells.length];
     });
     console.log(fittingWords);
 
@@ -83,7 +78,7 @@ class EditorContainer extends React.Component<EditorProps, EditorContainerState>
 
     const start = Date.now();
     console.log('starting fill...', values(answerMap).length);
-    const fillResult = autoFill(this.props.board.grid, values(answerMap), fittingWords, {});
+    const fillResult = autoFill(this.props.board.grid, values(answerMap), fittingWords, []);
     console.log({ fillResult });
     console.log('filled in', Date.now() - start, 'ms');
     if (fillResult.success) {
