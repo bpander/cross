@@ -4,21 +4,18 @@ import { connect } from 'react-redux';
 
 import { BLACK_SYMBOL, BOARD_WIDTH } from 'config/global';
 import { ContainerProps } from 'containers/definitions/Containers';
-import Dictionary from 'definitions/Dictionary';
-import { AnswerMap, CellToClueMap, getAnswerMap, getCellToClueMap } from 'lib/crossword';
+import { CellToClueMap, getCellToClueMap, getSlots, Slot } from 'lib/crossword';
 import * as boardModule from 'redux-modules/board';
 import { includes, times } from 'util/arrays';
-import { values } from 'util/objects';
 
 class CellsContainer extends React.Component<ContainerProps> {
 
-  getHighlightedCells(answerMap: AnswerMap): number[] | undefined {
+  getSlotAtCursor(slots: Slot[]): Slot | undefined {
     const { board } = this.props;
-    const answerCellsMap = answerMap[board.direction] as Dictionary<number[]>;
-    return values(answerCellsMap).find(cells => includes(cells, board.cursor));
+    return slots.find(slot => slot.direction === board.direction && includes(slot.cells, board.cursor));
   }
 
-  renderCell(cell: number, cellToClueMap: CellToClueMap, highlightedCells?: number[]) {
+  renderCell(cell: number, cellToClueMap: CellToClueMap, highlightedSlot?: Slot) {
     const { board } = this.props;
     const cellSize = BOARD_WIDTH / board.size;
     const x = (cell % board.size) * cellSize;
@@ -40,7 +37,7 @@ class CellsContainer extends React.Component<ContainerProps> {
           width={cellSize}
           height={cellSize}
           className={classNames('board__cell', {
-            'board__cell--highlight': highlightedCells && includes(highlightedCells, cell),
+            'board__cell--highlight': highlightedSlot && includes(highlightedSlot.cells, cell),
             'board__cell--cursor': cell === board.cursor,
             'board__cell--black': board.grid[cell] === BLACK_SYMBOL,
           })}
@@ -72,13 +69,13 @@ class CellsContainer extends React.Component<ContainerProps> {
 
   render() {
     const { board } = this.props;
-    const answerMap = getAnswerMap(board);
-    const cellToClueMap = getCellToClueMap(answerMap);
-    const highlightedCells = this.getHighlightedCells(answerMap);
+    const slots = getSlots(board);
+    const cellToClueMap = getCellToClueMap(slots);
+    const slotAtCursor = this.getSlotAtCursor(slots);
 
     return (
       <g data-group="cells">
-        {times(board.size ** 2, i => this.renderCell(i, cellToClueMap, highlightedCells))}
+        {times(board.size ** 2, i => this.renderCell(i, cellToClueMap, slotAtCursor))}
       </g>
     );
   }

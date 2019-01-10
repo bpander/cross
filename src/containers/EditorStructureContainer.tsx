@@ -16,7 +16,7 @@ import iconSquare from 'icons/iconSquare';
 import iconTextRotateVertical from 'icons/iconTextRotateVertical';
 import iconTextRotationNone from 'icons/iconTextRotationNone';
 import iconUndo from 'icons/iconUndo';
-import { Direction, getAnswerMap, getWordCounts } from 'lib/crossword';
+import { Direction, getSlots, getWordCounts } from 'lib/crossword';
 import * as boardModule from 'redux-modules/board';
 
 class EditorStructureContainer extends React.Component<ContainerProps> {
@@ -86,8 +86,8 @@ class EditorStructureContainer extends React.Component<ContainerProps> {
     );
   }
   render() {
-    const answerMap = getAnswerMap(this.props.board);
-    const wordCounts = getWordCounts(answerMap);
+    const slots = getSlots(this.props.board);
+    const wordCounts = getWordCounts(slots);
     const maxGroupLength = maxBy(values(wordCounts), cellGroups => cellGroups.length)!.length;
     const { board } = this.props;
     return (

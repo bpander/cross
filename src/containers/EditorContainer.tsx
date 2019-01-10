@@ -54,12 +54,16 @@ class EditorContainer extends React.Component<EditorProps, EditorContainerState>
     window.removeEventListener('keydown', this.onKeyDown);
   }
 
+  // TODO: Organize this better
+  // tslint:disable-next-line cyclomatic-complexity
   onKeyDown = (e: KeyboardEvent) => {
     const { board } = this.props;
     let directionMultiplier = 1;
     switch (e.key) {
       case 'ArrowUp':
         directionMultiplier = -1;
+
+      // tslint:disable-next-line no-switch-case-fall-through
       case 'ArrowDown': {
         const [ x ] = getXY(board.size, board.cursor);
         const min = getIndex(board.size, [ x, 0 ]);
@@ -71,6 +75,8 @@ class EditorContainer extends React.Component<EditorProps, EditorContainerState>
 
       case 'ArrowLeft':
         directionMultiplier = -1;
+
+      // tslint:disable-next-line no-switch-case-fall-through
       case 'ArrowRight': {
         const [ , y ] = getXY(board.size, board.cursor);
         const min = getIndex(board.size, [ 0, y ]);

@@ -13,16 +13,6 @@ export const mapValues = <T, R = T>(obj: Dictionary<T>, mapper: ObjectMapper<T, 
   return mappedObject;
 };
 
-export const invert = (obj: Dictionary<string | number>): Dictionary<string> => {
-  const invertedObject: Dictionary<string> = {};
-  Object.keys(obj).forEach(key => {
-    const value = obj[key];
-    invertedObject[value] = key;
-  });
-
-  return invertedObject;
-};
-
 export const values = <T extends object>(obj: T): Array<T[keyof T]> => {
   return Object.keys(obj).map(key => obj[(key as keyof T)]);
 };
