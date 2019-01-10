@@ -11,6 +11,9 @@ import { ContainerProps } from 'containers/definitions/Containers';
 import EditorStructureContainer from 'containers/EditorStructureContainer';
 import * as boardModule from 'redux-modules/board';
 import { getIndex, getXY } from 'util/grid2Ds';
+import dictPath from 'data/default.dict';
+import { parser } from 'parsers/dict.parser';
+import groupBy from 'lodash/groupBy';
 
 type EditorProps = ContainerProps<{ puzzleId?: string; }>;
 
@@ -46,7 +49,13 @@ class EditorContainer extends React.Component<EditorProps, EditorContainerState>
     };
   }
 
-  componentDidMount() {
+  async componentDidMount() {
+    const dictResponse = await fetch(dictPath);
+    const dictContents = await dictResponse.text();
+    const dictResult = parser(dictContents);
+    const wordsGrouped = groupBy(dictResult.data, 'length');
+    console.log(wordsGrouped);
+
     window.addEventListener('keydown', this.onKeyDown);
   }
 
