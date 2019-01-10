@@ -1,4 +1,6 @@
 import clamp from 'lodash/clamp';
+import groupBy from 'lodash/groupBy';
+import keyBy from 'lodash/keyBy';
 import React from 'react';
 import { connect } from 'react-redux';
 import { Route } from 'react-router';
@@ -9,11 +11,12 @@ import { BLACK_SYMBOL, BOARD_WIDTH } from 'config/global';
 import CellsContainer from 'containers/CellsContainer';
 import { ContainerProps } from 'containers/definitions/Containers';
 import EditorStructureContainer from 'containers/EditorStructureContainer';
+import dictPath from 'data/default.dict';
+import { autoFill, getSlots } from 'lib/crossword';
+import { parser } from 'parsers/dict.parser';
 import * as boardModule from 'redux-modules/board';
 import { getIndex, getXY } from 'util/grid2Ds';
-import dictPath from 'data/default.dict';
-import { parser } from 'parsers/dict.parser';
-import groupBy from 'lodash/groupBy';
+import { mapValues } from 'util/objects';
 
 type EditorProps = ContainerProps<{ puzzleId?: string; }>;
 
@@ -54,7 +57,14 @@ class EditorContainer extends React.Component<EditorProps, EditorContainerState>
     const dictContents = await dictResponse.text();
     const dictResult = parser(dictContents);
     const wordsGrouped = groupBy(dictResult.data, 'length');
-    console.log(wordsGrouped);
+    const { board } = this.props;
+    const slots = getSlots(board);
+    const fittingWords = mapValues(keyBy(slots, 'id'), slot => wordsGrouped[slot.cells.length]);
+    const shouldFill = false;
+    if (shouldFill) {
+      const autoFillResult = autoFill(board.grid, slots, fittingWords, []);
+      console.log(autoFillResult);
+    }
 
     window.addEventListener('keydown', this.onKeyDown);
   }
