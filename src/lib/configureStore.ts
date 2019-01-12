@@ -20,7 +20,7 @@ export default (history: History): Store<RootState> => {
 
   const rootReducer = createRootReducer(history);
   const reducer = mergePersistedState()(rootReducer) as Reducer<RootState | undefined, AnyAction>;
-  const storage = filter([ 'board' ])(adapter(window.localStorage));
+  const storage = filter([ 'editor' ])(adapter(window.localStorage));
   const enhancer: StoreEnhancer = composeEnhancers(
     applyMiddleware(
       routerMiddleware(history),

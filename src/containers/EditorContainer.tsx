@@ -12,6 +12,7 @@ import EditorFillContainer from 'containers/EditorFillContainer';
 import EditorStructureContainer from 'containers/EditorStructureContainer';
 import { boardActions } from 'redux-modules/board';
 import { dictionaryActions } from 'redux-modules/dictionary';
+import { editorActions } from 'redux-modules/editor';
 import { getIndex, getXY } from 'util/grid2Ds';
 
 type EditorProps = ContainerProps<{ puzzleId?: string; }>;
@@ -60,7 +61,7 @@ class EditorContainer extends React.Component<EditorProps, EditorContainerState>
   // TODO: Organize this better
   // tslint:disable-next-line cyclomatic-complexity
   onKeyDown = (e: KeyboardEvent) => {
-    const { board } = this.props;
+    const { board, shape } = this.props.editor;
     let directionMultiplier = 1;
     switch (e.key) {
       case 'ArrowUp':
@@ -68,10 +69,10 @@ class EditorContainer extends React.Component<EditorProps, EditorContainerState>
 
       // tslint:disable-next-line no-switch-case-fall-through
       case 'ArrowDown': {
-        const [ x ] = getXY(board.size, board.cursor);
-        const min = getIndex(board.size, [ x, 0 ]);
-        const max = getIndex(board.size, [ x, board.size - 1 ]);
-        const cursor = clamp(board.cursor + board.size * directionMultiplier, min, max);
+        const [ x ] = getXY(shape.width, board.cursor);
+        const min = getIndex(shape.width, [ x, 0 ]);
+        const max = getIndex(shape.width, [ x, shape.width - 1 ]);
+        const cursor = clamp(board.cursor + shape.width * directionMultiplier, min, max);
         this.props.dispatch(boardActions.setCursor(cursor));
         break;
       }
@@ -81,19 +82,19 @@ class EditorContainer extends React.Component<EditorProps, EditorContainerState>
 
       // tslint:disable-next-line no-switch-case-fall-through
       case 'ArrowRight': {
-        const [ , y ] = getXY(board.size, board.cursor);
-        const min = getIndex(board.size, [ 0, y ]);
-        const max = getIndex(board.size, [ board.size - 1, y ]);
+        const [ , y ] = getXY(shape.width, board.cursor);
+        const min = getIndex(shape.width, [ 0, y ]);
+        const max = getIndex(shape.width, [ shape.width - 1, y ]);
         const cursor = clamp(board.cursor + directionMultiplier, min, max);
         this.props.dispatch(boardActions.setCursor(cursor));
         break;
       }
 
       case 'Enter': return this.props.dispatch(boardActions.toggleDirection());
-      case 'Backspace': return this.props.dispatch(boardActions.setValueAtCursor(''));
+      case 'Backspace': return this.props.dispatch(editorActions.setValueAtCursor(''));
       default:
         if (e.key.match(/^[a-z]$/i) || e.key === BLACK_SYMBOL) {
-          this.props.dispatch(boardActions.setValueAtCursor(e.key.toUpperCase()));
+          this.props.dispatch(editorActions.setValueAtCursor(e.key.toUpperCase()));
         }
     }
   };
@@ -113,7 +114,7 @@ class EditorContainer extends React.Component<EditorProps, EditorContainerState>
             className="board"
           >
             <Route component={CellsContainer} />
-            <Grid size={this.props.board.size} />
+            <Grid size={this.props.editor.shape.width} />
           </svg>
         </div>
         <div className="grid__col">

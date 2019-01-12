@@ -16,13 +16,16 @@ import iconSquare from 'icons/iconSquare';
 import iconTextRotateVertical from 'icons/iconTextRotateVertical';
 import iconTextRotationNone from 'icons/iconTextRotationNone';
 import iconUndo from 'icons/iconUndo';
-import { Direction, getSlots, getWordCounts } from 'lib/crossword';
+import * as Enums from 'lib/crossword/Enums';
 import { boardActions } from 'redux-modules/board';
+import { editorActions } from 'redux-modules/editor';
+import { shapeSelectors } from 'redux-modules/shape';
+import { includes } from 'util/arrays';
 
 class EditorStructureContainer extends React.Component<ContainerProps> {
 
   onToggleBlackClick: React.MouseEventHandler<HTMLButtonElement> = () => {
-    this.props.dispatch(boardActions.setValueAtCursor(BLACK_SYMBOL));
+    this.props.dispatch(editorActions.setValueAtCursor(BLACK_SYMBOL));
   };
 
   onToggleDirectionClick: React.MouseEventHandler<HTMLButtonElement> = () => {
@@ -30,8 +33,8 @@ class EditorStructureContainer extends React.Component<ContainerProps> {
   };
 
   renderToolbar() {
-    const { board } = this.props;
-    const directionIconDef = (board.direction === Direction.Across)
+    const { board, shape } = this.props.editor;
+    const directionIconDef = (board.direction === Enums.Direction.Across)
       ? iconTextRotationNone
       : iconTextRotateVertical;
 
@@ -59,7 +62,7 @@ class EditorStructureContainer extends React.Component<ContainerProps> {
           <li>
             <button
               className={classNames('btn d-block', {
-                'btn--active': board.grid[board.cursor] === BLACK_SYMBOL,
+                'btn--active': includes(shape.blocks, board.cursor),
               })}
               onClick={this.onToggleBlackClick}
             >
@@ -86,23 +89,22 @@ class EditorStructureContainer extends React.Component<ContainerProps> {
     );
   }
   render() {
-    const slots = getSlots(this.props.board);
-    const wordCounts = getWordCounts(slots);
+    const { shape } = this.props.editor;
+    const wordCounts = shapeSelectors.getWordCounts(shape);
     const maxGroupLength = maxBy(values(wordCounts), cellGroups => cellGroups.length)!.length;
-    const { board } = this.props;
     return (
       <React.Fragment>
         {this.renderToolbar()}
         <hr className="hr" />
         <div className="bar-graph">
-          {range(1, board.size + 1).map(n => {
+          {range(1, shape.width + 1).map(n => {
             const length = (wordCounts[n]) ? wordCounts[n].length : 0;
             return (
               <div
                 key={n}
                 className="bar-graph__bar"
                 style={{
-                  left: (n / board.size * 90) + 5 + '%',
+                  left: (n / shape.width * 90) + 5 + '%',
                   transform: `translateY(-${length / maxGroupLength * 100}%)`,
                 }}
               />

@@ -1,14 +1,7 @@
-import { Direction } from 'lib/crossword';
+import * as Enums from 'lib/crossword/Enums';
 
 export default interface BoardState {
-  author: string | null;
-  title: string | null;
-  size: number;
-  clues: {
-    across: string[];
-    down: string[];
-  };
-  grid: string[];
+  letters: string[];
   cursor: number;
-  direction: Direction;
+  direction: Enums.Direction;
 }

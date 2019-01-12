@@ -2,26 +2,28 @@ import classNames from 'classnames';
 import React from 'react';
 import { connect } from 'react-redux';
 
-import { BLACK_SYMBOL, BOARD_WIDTH } from 'config/global';
+import { BOARD_WIDTH } from 'config/global';
 import { ContainerProps } from 'containers/definitions/Containers';
-import { CellToClueMap, getCellToClueMap, Slot } from 'lib/crossword';
-import { boardActions, boardSelectors } from 'redux-modules/board';
+import * as Types from 'lib/crossword/Types';
+import { boardActions } from 'redux-modules/board';
+import { editorSelectors } from 'redux-modules/editor';
+import { shapeSelectors } from 'redux-modules/shape';
 import { includes, times } from 'util/arrays';
 
 class CellsContainer extends React.Component<ContainerProps> {
 
-  renderCell(cell: number, cellToClueMap: CellToClueMap, highlightedSlot?: Slot) {
-    const { board } = this.props;
-    const cellSize = BOARD_WIDTH / board.size;
-    const x = (cell % board.size) * cellSize;
-    const y = Math.floor(cell / board.size) * cellSize;
+  renderCell(cell: number, cellToClueMap: { [cell: number]: number; }, highlightedSlot?: Types.Slot) {
+    const { board, shape } = this.props.editor;
+    const cellSize = BOARD_WIDTH / shape.width;
+    const x = (cell % shape.width) * cellSize;
+    const y = Math.floor(cell / shape.width) * cellSize;
 
     return (
       <g
         key={cell}
         onClick={() => {
           this.props.dispatch(boardActions.setCursor(cell));
-          if (cell === this.props.board.cursor) {
+          if (cell === board.cursor) {
             this.props.dispatch(boardActions.toggleDirection());
           }
         }}
@@ -34,7 +36,7 @@ class CellsContainer extends React.Component<ContainerProps> {
           className={classNames('board__cell', {
             'board__cell--highlight': highlightedSlot && includes(highlightedSlot.cells, cell),
             'board__cell--cursor': cell === board.cursor,
-            'board__cell--black': board.grid[cell] === BLACK_SYMBOL,
+            'board__cell--black': includes(shape.blocks, cell),
           })}
         />
         {(cellToClueMap[cell]) && (
@@ -47,7 +49,7 @@ class CellsContainer extends React.Component<ContainerProps> {
             {cellToClueMap[cell]}
           </text>
         )}
-        {(board.grid[cell] && board.grid[cell] !== BLACK_SYMBOL) && (
+        {(board.letters[cell]) && (
           <text
             x={x + (cellSize / 2)}
             y={y + cellSize - (cellSize * 0.1)}
@@ -55,7 +57,7 @@ class CellsContainer extends React.Component<ContainerProps> {
             alignmentBaseline="baseline"
             fontSize={cellSize * 0.8}
           >
-            {board.grid[cell]}
+            {board.letters[cell]}
           </text>
         )}
       </g>
@@ -63,14 +65,13 @@ class CellsContainer extends React.Component<ContainerProps> {
   }
 
   render() {
-    const { board } = this.props;
-    const slots = boardSelectors.getSlots(board);
-    const cellToClueMap = getCellToClueMap(slots);
-    const slotAtCursor = boardSelectors.getSlotAtCursor(this.props.board);
+    const { shape } = this.props.editor;
+    const cellToClueMap = shapeSelectors.getCellToClueMap(shape);
+    const slotAtCursor = editorSelectors.getSlotAtCursor(this.props.editor);
 
     return (
       <g data-group="cells">
-        {times(board.size ** 2, i => this.renderCell(i, cellToClueMap, slotAtCursor))}
+        {times(shape.width * shape.height, i => this.renderCell(i, cellToClueMap, slotAtCursor))}
       </g>
     );
   }
