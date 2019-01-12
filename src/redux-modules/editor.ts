@@ -59,4 +59,24 @@ export const editorSelectors = {
     },
   ),
 
+  getUsedWords: createSelector(
+    (editorState: EditorState) => shapeSelectors.getSlots(editorState.shape),
+    (editorState: EditorState) => editorState.board.letters,
+    (slots, letters) => {
+      const usedWords: string[] = [];
+      slots.forEach(slot => {
+        let runningChars: string = '';
+        for (let i = 0; i < slot.cells.length; i++) {
+          const char = letters[slot.cells[i]];
+          if (!char) {
+            return;
+          }
+          runningChars += char;
+        }
+        usedWords.push(runningChars);
+      });
+      return usedWords;
+    },
+  ),
+
 };

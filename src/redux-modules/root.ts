@@ -30,18 +30,10 @@ export const rootSelectors = {
           pattern => {
             const re = new RegExp(`^${pattern}$`);
             const r = wordsGrouped[pattern.length].filter(word => re.test(word));
-            return r;
+            return (r.length === 1) ? null : r;
           },
         );
       });
-    },
-  ),
-
-  getFittingWords: createSelector(
-    (state: RootState) => shapeSelectors.getSlots(state.editor.shape),
-    (state: RootState) => dictionarySelectors.getWordsGrouped(state.dictionary),
-    (slots, wordsGrouped) => {
-      return mapValues(keyBy(slots, 'id'), slot => wordsGrouped[slot.cells.length]);
     },
   ),
 };
