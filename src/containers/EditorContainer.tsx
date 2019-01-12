@@ -1,6 +1,4 @@
 import clamp from 'lodash/clamp';
-import groupBy from 'lodash/groupBy';
-import keyBy from 'lodash/keyBy';
 import React from 'react';
 import { connect } from 'react-redux';
 import { Route } from 'react-router';
@@ -10,13 +8,11 @@ import Tabs, { Tab } from 'components/Tabs';
 import { BLACK_SYMBOL, BOARD_WIDTH } from 'config/global';
 import CellsContainer from 'containers/CellsContainer';
 import { ContainerProps } from 'containers/definitions/Containers';
+import EditorFillContainer from 'containers/EditorFillContainer';
 import EditorStructureContainer from 'containers/EditorStructureContainer';
-import dictPath from 'data/default.dict';
-import { autoFill, getSlots } from 'lib/crossword';
-import { parser } from 'parsers/dict.parser';
 import { boardActions } from 'redux-modules/board';
+import { dictionaryActions } from 'redux-modules/dictionary';
 import { getIndex, getXY } from 'util/grid2Ds';
-import { mapValues } from 'util/objects';
 
 type EditorProps = ContainerProps<{ puzzleId?: string; }>;
 
@@ -33,7 +29,7 @@ class EditorContainer extends React.Component<EditorProps, EditorContainerState>
     },
     {
       label: 'Fill',
-      panel: () => <div>fill</div>,
+      panel: () => <Route component={EditorFillContainer} />,
     },
     {
       label: 'Clues',
@@ -53,19 +49,7 @@ class EditorContainer extends React.Component<EditorProps, EditorContainerState>
   }
 
   async componentDidMount() {
-    const dictResponse = await fetch(dictPath);
-    const dictContents = await dictResponse.text();
-    const dictResult = parser(dictContents);
-    const wordsGrouped = groupBy(dictResult.data, 'length');
-    const { board } = this.props;
-    const slots = getSlots(board);
-    const fittingWords = mapValues(keyBy(slots, 'id'), slot => wordsGrouped[slot.cells.length]);
-    const shouldFill = false;
-    if (shouldFill) {
-      const autoFillResult = autoFill(board.grid, slots, fittingWords, []);
-      console.log(autoFillResult);
-    }
-
+    this.props.dispatch(dictionaryActions.fetchWordList());
     window.addEventListener('keydown', this.onKeyDown);
   }
 
