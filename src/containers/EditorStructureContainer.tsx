@@ -17,16 +17,16 @@ import iconTextRotateVertical from 'icons/iconTextRotateVertical';
 import iconTextRotationNone from 'icons/iconTextRotationNone';
 import iconUndo from 'icons/iconUndo';
 import { Direction, getSlots, getWordCounts } from 'lib/crossword';
-import * as boardModule from 'redux-modules/board';
+import { boardActions } from 'redux-modules/board';
 
 class EditorStructureContainer extends React.Component<ContainerProps> {
 
   onToggleBlackClick: React.MouseEventHandler<HTMLButtonElement> = () => {
-    this.props.dispatch(boardModule.actions.setValueAtCursor(BLACK_SYMBOL));
+    this.props.dispatch(boardActions.setValueAtCursor(BLACK_SYMBOL));
   };
 
   onToggleDirectionClick: React.MouseEventHandler<HTMLButtonElement> = () => {
-    this.props.dispatch(boardModule.actions.toggleDirection());
+    this.props.dispatch(boardActions.toggleDirection());
   };
 
   renderToolbar() {

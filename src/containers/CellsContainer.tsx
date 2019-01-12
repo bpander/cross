@@ -5,7 +5,7 @@ import { connect } from 'react-redux';
 import { BLACK_SYMBOL, BOARD_WIDTH } from 'config/global';
 import { ContainerProps } from 'containers/definitions/Containers';
 import { CellToClueMap, getCellToClueMap, Slot } from 'lib/crossword';
-import * as boardModule from 'redux-modules/board';
+import { boardActions, boardSelectors } from 'redux-modules/board';
 import { includes, times } from 'util/arrays';
 
 class CellsContainer extends React.Component<ContainerProps> {
@@ -20,9 +20,9 @@ class CellsContainer extends React.Component<ContainerProps> {
       <g
         key={cell}
         onClick={() => {
-          this.props.dispatch(boardModule.actions.setCursor(cell));
+          this.props.dispatch(boardActions.setCursor(cell));
           if (cell === this.props.board.cursor) {
-            this.props.dispatch(boardModule.actions.toggleDirection());
+            this.props.dispatch(boardActions.toggleDirection());
           }
         }}
       >
@@ -64,9 +64,9 @@ class CellsContainer extends React.Component<ContainerProps> {
 
   render() {
     const { board } = this.props;
-    const slots = boardModule.selectors.getSlots(board);
+    const slots = boardSelectors.getSlots(board);
     const cellToClueMap = getCellToClueMap(slots);
-    const slotAtCursor = boardModule.selectors.getSlotAtCursor(this.props.board);
+    const slotAtCursor = boardSelectors.getSlotAtCursor(this.props.board);
 
     return (
       <g data-group="cells">

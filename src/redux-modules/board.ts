@@ -25,7 +25,7 @@ const initialState: BoardState = {
 const { reducer, update } = createReducer<BoardState>('board/UPDATE', initialState);
 export const boardReducer = reducer;
 
-export const actions = {
+export const boardActions = {
   toggleDirection: (): RootThunkAction<void> => (dispatch, getState) => {
     const { board } = getState();
     dispatch(update({ direction: toggleDirection(board.direction) }));
@@ -61,7 +61,7 @@ const memoizedGetSlots = createSelector(
   (grid, size) => getSlots({ grid, size }),
 );
 
-export const selectors = {
+export const boardSelectors = {
 
   getSlots: memoizedGetSlots,
 

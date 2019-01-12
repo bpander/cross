@@ -14,7 +14,7 @@ import EditorStructureContainer from 'containers/EditorStructureContainer';
 import dictPath from 'data/default.dict';
 import { autoFill, getSlots } from 'lib/crossword';
 import { parser } from 'parsers/dict.parser';
-import * as boardModule from 'redux-modules/board';
+import { boardActions } from 'redux-modules/board';
 import { getIndex, getXY } from 'util/grid2Ds';
 import { mapValues } from 'util/objects';
 
@@ -88,7 +88,7 @@ class EditorContainer extends React.Component<EditorProps, EditorContainerState>
         const min = getIndex(board.size, [ x, 0 ]);
         const max = getIndex(board.size, [ x, board.size - 1 ]);
         const cursor = clamp(board.cursor + board.size * directionMultiplier, min, max);
-        this.props.dispatch(boardModule.actions.setCursor(cursor));
+        this.props.dispatch(boardActions.setCursor(cursor));
         break;
       }
 
@@ -101,15 +101,15 @@ class EditorContainer extends React.Component<EditorProps, EditorContainerState>
         const min = getIndex(board.size, [ 0, y ]);
         const max = getIndex(board.size, [ board.size - 1, y ]);
         const cursor = clamp(board.cursor + directionMultiplier, min, max);
-        this.props.dispatch(boardModule.actions.setCursor(cursor));
+        this.props.dispatch(boardActions.setCursor(cursor));
         break;
       }
 
-      case 'Enter': return this.props.dispatch(boardModule.actions.toggleDirection());
-      case 'Backspace': return this.props.dispatch(boardModule.actions.setValueAtCursor(''));
+      case 'Enter': return this.props.dispatch(boardActions.toggleDirection());
+      case 'Backspace': return this.props.dispatch(boardActions.setValueAtCursor(''));
       default:
         if (e.key.match(/^[a-z]$/i) || e.key === BLACK_SYMBOL) {
-          this.props.dispatch(boardModule.actions.setValueAtCursor(e.key.toUpperCase()));
+          this.props.dispatch(boardActions.setValueAtCursor(e.key.toUpperCase()));
         }
     }
   };
