@@ -1,4 +1,7 @@
 import * as Types from './Types';
+export { ctx };
+
+const ctx: Worker = self as any;
 
 const fillWordAt = (grid: string[], word: string, slot: Types.Slot): string[] => {
   const gridCopy = [ ...grid ];
@@ -29,7 +32,7 @@ const getSlotWithLeastFittingWords = (slots: Types.Slot[], fittingWords: Types.F
   return slotWithLeastFittingWords;
 };
 
-export const fillWord = (grid: string[], slots: Types.Slot[], fittingWords: Types.FittingWords, usedWords: string[], word: string, slot: Types.Slot): Types.AutoFillResult => {
+const fillWord = (grid: string[], slots: Types.Slot[], fittingWords: Types.FittingWords, usedWords: string[], word: string, slot: Types.Slot): Types.AutoFillResult => {
   const newGrid = fillWordAt(grid, word, slot);
   const newFittingWords: Types.FittingWords = {
     ...fittingWords,
@@ -63,3 +66,10 @@ export const fillWord = (grid: string[], slots: Types.Slot[], fittingWords: Type
   });
   return res;
 };
+
+
+ctx.addEventListener('message', e => {
+  const { grid, slots, fittingWords, usedWords, word, slot } = e.data;
+  const res = fillWord(grid, slots, fittingWords, usedWords, word, slot);
+  ctx.postMessage({ res, id: slot.id, word });
+});

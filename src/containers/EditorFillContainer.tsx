@@ -2,11 +2,13 @@ import React from 'react';
 import { connect } from 'react-redux';
 
 import { ContainerProps } from 'containers/definitions/Containers';
-import { fillWord } from 'lib/crossword/solver';
 import { editorSelectors } from 'redux-modules/editor';
 import { rootSelectors } from 'redux-modules/root';
 import { shapeSelectors } from 'redux-modules/shape';
 import { mapValues } from 'util/objects';
+
+const worker = new Worker('solver.worker.js');
+worker.addEventListener('message', e => console.log(e.data));
 
 class EditorFillContainer extends React.Component<ContainerProps> {
 
@@ -26,8 +28,8 @@ class EditorFillContainer extends React.Component<ContainerProps> {
     const word = fittingWords[slot.id]![0];
     console.log('starting fill...');
     const start = Date.now();
-    const res = fillWord(letters, slots, fittingWords, usedWords, word, slot);
-    console.log((Date.now() - start) + 'ms', res);
+    worker.postMessage({ grid: letters, slots, fittingWords, usedWords, word, slot });
+    console.log((Date.now() - start) + 'ms');
   }
 
   render() {
