@@ -1,5 +1,3 @@
-import Dictionary from 'definitions/Dictionary';
-
 import * as Types from './Types';
 
 const fillWordAt = (grid: string[], word: string, slot: Types.Slot): string[] => {
@@ -31,40 +29,37 @@ const getSlotWithLeastFittingWords = (slots: Types.Slot[], fittingWords: Types.F
   return slotWithLeastFittingWords;
 };
 
-interface AutoFill {
-  (grid: string[], slots: Types.Slot[], fittingWords: Types.FittingWords, usedWords: string[]): Types.AutoFillResult;
-}
-
-export const autoFill: AutoFill = (grid, slots, fittingWords, usedWords) => {
-  let res: Types.AutoFillResult = { success: false };
-  const slot = getSlotWithLeastFittingWords(slots, fittingWords);
-  if (!slot) {
-    return { success: true, grid };
-  }
-  fittingWords[slot.id]!.some(candidate => {
-    if (usedWords.indexOf(candidate) > -1) {
+export const fillWord = (grid: string[], slots: Types.Slot[], fittingWords: Types.FittingWords, usedWords: string[], word: string, slot: Types.Slot): Types.AutoFillResult => {
+  const newGrid = fillWordAt(grid, word, slot);
+  const newFittingWords: Types.FittingWords = {
+    ...fittingWords,
+    [slot.id]: null,
+  };
+  const hasZero = slot.intersections.some(intersection => {
+    const words = newFittingWords[intersection.otherId];
+    if (!words) {
       return false;
     }
-    const newGrid = fillWordAt(grid, candidate, slot);
-    const newFittingWords: Dictionary<string[] | null> = {
-      ...fittingWords,
-      [slot.id]: null,
-    };
-    const hasZero = slot.intersections.some(intersection => {
-      const words = newFittingWords[intersection.otherId];
-      if (!words) {
-        return false;
-      }
-      const char = newGrid[intersection.cell];
-      const newWords = only(words, intersection.otherIndex, char);
-      newFittingWords[intersection.otherId] = newWords;
-      return newWords.length === 0;
-    });
-    if (!hasZero) {
-      res = autoFill(newGrid, slots, newFittingWords, [ ...usedWords, candidate ]);
+    const char = newGrid[intersection.cell];
+    const newWords = only(words, intersection.otherIndex, char);
+    newFittingWords[intersection.otherId] = newWords;
+    return newWords.length === 0;
+  });
+  if (hasZero) {
+    return { success: false };
+  }
+  const nextSlot = getSlotWithLeastFittingWords(slots, newFittingWords);
+  if (!nextSlot) {
+    return { success: true, grid: newGrid };
+  }
+  const newUsedWords = [ ...usedWords, word ];
+  let res: Types.AutoFillResult = { success: false };
+  newFittingWords[nextSlot.id]!.some(nextWord => {
+    if (newUsedWords.indexOf(nextWord) > -1) {
+      return false;
     }
+    res = fillWord(newGrid, slots, newFittingWords, newUsedWords, nextWord, nextSlot);
     return res.success;
   });
-
   return res;
 };
