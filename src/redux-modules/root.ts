@@ -28,9 +28,12 @@ export const rootSelectors = {
         return createSelector(
           (boardState: BoardState) => slot.cells.map(cell => boardState.letters[cell] || '.').join(''),
           pattern => {
+            if (!pattern.includes('.')) {
+              return null;
+            }
             const re = new RegExp(`^${pattern}$`);
             const r = wordsGrouped[pattern.length].filter(word => re.test(word));
-            return (r.length === 1) ? null : r;
+            return r;
           },
         );
       });

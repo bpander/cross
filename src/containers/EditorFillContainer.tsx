@@ -19,21 +19,32 @@ class EditorFillContainer extends React.Component<ContainerProps> {
     this.workerPool = new WorkerPool('solver.worker.js', 8);
   }
 
-  componentDidUpdate() {
+  componentDidUpdate(prevProps: ContainerProps) {
+    const prevSlot = editorSelectors.getSlotAtCursor(prevProps.editor);
     const slot = editorSelectors.getSlotAtCursor(this.props.editor);
     if (!slot) {
+      this.workerPool.killAll();
+      return;
+    }
+    if (slot === prevSlot) {
+      console.log('same');
       return;
     }
     const slots = shapeSelectors.getSlots(this.props.editor.shape);
     const wordGetters = rootSelectors.getFittingWordsGetters(this.props);
     const fittingWords = mapValues(wordGetters, getter => getter(this.props.editor.board));
-    if (!fittingWords[slot.id]) {
+    const fittingWordsAtSlot = fittingWords[slot.id];
+    if (!fittingWordsAtSlot) {
+      console.log('closed');
       return;
+    }
+    if (!fittingWordsAtSlot.length) {
+      console.log('no fitting words');
     }
     const usedWords = editorSelectors.getUsedWords(this.props.editor);
     const { letters } = this.props.editor.board;
     this.workerPool.killAll();
-    fittingWords[slot.id]!.forEach(word => {
+    fittingWordsAtSlot.forEach(word => {
       this.workerPool.enqueue(worker => {
         return new Promise(resolve => {
           const timeoutId = setTimeout(
@@ -46,7 +57,9 @@ class EditorFillContainer extends React.Component<ContainerProps> {
           worker.postMessage({ grid: letters, slots, fittingWords, usedWords, word, slot });
           worker.addEventListener('message', e => {
             clearTimeout(timeoutId);
-            console.log(e.data);
+            if (e.data.res.success) {
+              console.log(e.data);
+            }
             resolve(worker);
           });
         });
