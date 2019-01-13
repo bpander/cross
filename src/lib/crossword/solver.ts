@@ -1,7 +1,7 @@
 import * as Types from './Types';
-export { ctx };
 
-const ctx: Worker = self as any;
+const ctx: Worker = self as any; // tslint:disable-line no-any
+export { ctx };
 
 const fillWordAt = (grid: string[], word: string, slot: Types.Slot): string[] => {
   const gridCopy = [ ...grid ];
@@ -66,7 +66,6 @@ const fillWord = (grid: string[], slots: Types.Slot[], fittingWords: Types.Fitti
   });
   return res;
 };
-
 
 ctx.addEventListener('message', e => {
   const { grid, slots, fittingWords, usedWords, word, slot } = e.data;
