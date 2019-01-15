@@ -3,6 +3,12 @@ import * as Types from './Types';
 const ctx: Worker = self as any; // tslint:disable-line no-any
 export { ctx };
 
+let initialGrid: string[];
+let initialSlots: Types.Slot[];
+let initialFittingWords: Types.FittingWords;
+let initialUsedWords: string[];
+let initialSlot: Types.Slot;
+
 const fillWordAt = (grid: string[], word: string, slot: Types.Slot): string[] => {
   const gridCopy = [ ...grid ];
   slot.cells.forEach((cell, i) => {
@@ -67,8 +73,24 @@ const fillWord = (grid: string[], slots: Types.Slot[], fittingWords: Types.Fitti
   return res;
 };
 
+const prepare = (data: any) => {
+  initialGrid = data.grid;
+  initialSlots = data.slots;
+  initialFittingWords = data.fittingWords;
+  initialUsedWords = data.usedWords;
+  initialSlot = data.slot;
+};
+
+const process = (word: string) => {
+  const res = fillWord(
+    initialGrid, initialSlots, initialFittingWords, initialUsedWords, word, initialSlot,
+  );
+  ctx.postMessage({ res, id: initialSlot.id, word });
+};
+
 ctx.addEventListener('message', e => {
-  const { grid, slots, fittingWords, usedWords, word, slot } = e.data;
-  const res = fillWord(grid, slots, fittingWords, usedWords, word, slot);
-  ctx.postMessage({ res, id: slot.id, word });
+  switch (e.data.type) {
+    case 'prepare': return prepare(e.data.payload);
+    case 'process': return process(e.data.payload);
+  }
 });

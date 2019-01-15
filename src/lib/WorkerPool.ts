@@ -1,47 +1,54 @@
 
-interface QueuedAction {
-  (worker: Worker): Promise<Worker>;
-}
-
-export default class WorkerPool {
+export default class WorkerPool<T> {
 
   path: string;
   limit: number;
-  queue: QueuedAction[];
+  queue: T[];
   workers: Worker[];
+  prepare: (worker: Worker) => void;
+  process: (worker: Worker, datum: T) => Promise<void>;
 
   constructor(path: string, limit: number) {
     this.path = path;
     this.limit = limit;
     this.queue = [];
     this.workers = [];
+    this.prepare = () => {};
+    this.process = () => Promise.resolve();
   }
 
-  enqueue(fn: QueuedAction) {
-    this.queue.push(fn);
+  enqueue(data: T[]) {
+    this.queue = this.queue.concat(data);
     this.processQueue();
   }
 
-  onWorkerDone = (worker: Worker) => {
-    worker.terminate();
+  processQueue(freeWorker?: Worker) {
+    if (!freeWorker && this.workers.length >= this.limit) {
+      return;
+    }
+    const datum = this.queue.shift();
+    if (!datum) {
+      return;
+    }
+    let worker: Worker;
+    if (freeWorker) {
+      worker = freeWorker;
+    } else {
+      worker = new Worker(this.path);
+      this.workers.push(worker);
+      this.prepare(worker);
+    }
+    this.process(worker, datum).then(() => this.processQueue(worker));
+    this.processQueue();
+  }
+
+  kill(worker: Worker) {
     const workerIndex = this.workers.indexOf(worker);
-    if (workerIndex !== -1) {
+    if (workerIndex > -1) {
       this.workers.splice(workerIndex, 1);
     }
+    worker.terminate();
     this.processQueue();
-  };
-
-  processQueue() {
-    if (this.workers.length >= this.limit) {
-      return;
-    }
-    const fn = this.queue.shift();
-    if (!fn) {
-      return;
-    }
-    const worker = new Worker(this.path);
-    this.workers.push(worker);
-    fn(worker).then(this.onWorkerDone);
   }
 
   killAll() {

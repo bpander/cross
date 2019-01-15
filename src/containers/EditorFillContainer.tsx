@@ -12,12 +12,33 @@ import { mapValues } from 'util/objects';
 
 class EditorFillContainer extends React.Component<ContainerProps> {
 
-  workerPool: WorkerPool;
+  workerPool: WorkerPool<string>;
 
   constructor(props: ContainerProps) {
     super(props);
     this.workerPool = new WorkerPool('solver.worker.js', 8);
+    this.workerPool.process = this.process;
   }
+
+  process = async (worker: Worker, word: string) => {
+    const result: any = await Promise.race([
+      new Promise(resolve => {
+        worker.addEventListener('message', e => resolve(e.data));
+        worker.postMessage({ type: 'process', payload: word });
+      }),
+      new Promise(resolve => setTimeout(resolve, 1000 * 20)),
+    ]);
+    if (!result) {
+      this.workerPool.kill(worker);
+      console.log('timeout', word);
+    } else {
+      if (result.res.success) {
+        console.log('success', result);
+      } else {
+        console.log('fail', word);
+      }
+    }
+  };
 
   componentDidUpdate(prevProps: ContainerProps) {
     const prevSlot = editorSelectors.getSlotAtCursor(prevProps.editor);
@@ -44,27 +65,13 @@ class EditorFillContainer extends React.Component<ContainerProps> {
     const usedWords = editorSelectors.getUsedWords(this.props.editor);
     const { letters } = this.props.editor.board;
     this.workerPool.killAll();
-    fittingWordsAtSlot.forEach(word => {
-      this.workerPool.enqueue(worker => {
-        return new Promise(resolve => {
-          const timeoutId = setTimeout(
-            () => {
-              resolve(worker);
-              console.log('worker timed out', slot.id, word);
-            },
-            1000 * 20,
-          );
-          worker.postMessage({ grid: letters, slots, fittingWords, usedWords, word, slot });
-          worker.addEventListener('message', e => {
-            clearTimeout(timeoutId);
-            if (e.data.res.success) {
-              console.log(e.data);
-            }
-            resolve(worker);
-          });
-        });
+    this.workerPool.prepare = worker => {
+      worker.postMessage({
+        type: 'prepare',
+        payload: { grid: letters, slots, fittingWords, usedWords, slot },
       });
-    });
+    };
+    this.workerPool.enqueue(fittingWordsAtSlot);
   }
 
   componentWillUnmount() {
