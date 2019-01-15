@@ -1,20 +1,63 @@
+const noop = () => {};
+class TimedDeferred<T> {
+
+  ms: number;
+  promise: Promise<T>;
+  resolve: (value: T | PromiseLike<T>) => void;
+  reject: (reason?: any) => void;
+  onTimeout: () => void;
+
+  constructor(ms: number) {
+    this.ms = ms;
+    this.resolve = noop;
+    this.reject = noop;
+    this.onTimeout = noop;
+    this.promise = new Promise((resolve, reject) => {
+      const timeoutId = setTimeout(
+        () => {
+          this.onTimeout();
+          reject();
+        },
+        ms,
+      );
+      this.resolve = (value: T | PromiseLike<T>) => {
+        clearTimeout(timeoutId);
+        resolve(value);
+      };
+      this.reject = (reason?: any) => {
+        clearTimeout(timeoutId);
+        reject(reason);
+      };
+    });
+  }
+}
+
+export interface Task<T> {
+  datum: T;
+  deferred: TimedDeferred<void>;
+  worker: Worker;
+}
+
+interface WorkerPoolConfig<T> {
+  limit: number;
+  timeout: number;
+  prepare: (worker: Worker) => void;
+  process: (task: Task<T>) => void;
+  onTimeout: (task: Task<T>) => void;
+}
 
 export default class WorkerPool<T> {
 
   path: string;
-  limit: number;
+  config: WorkerPoolConfig<T>;
   queue: T[];
-  workers: Worker[];
-  prepare: (worker: Worker) => void;
-  process: (worker: Worker, datum: T) => Promise<void>;
+  tasks: Task<T>[];
 
-  constructor(path: string, limit: number) {
+  constructor(path: string, config: WorkerPoolConfig<T>) {
     this.path = path;
-    this.limit = limit;
+    this.config = config;
     this.queue = [];
-    this.workers = [];
-    this.prepare = () => {};
-    this.process = () => Promise.resolve();
+    this.tasks = [];
   }
 
   enqueue(data: T[]) {
@@ -22,38 +65,47 @@ export default class WorkerPool<T> {
     this.processQueue();
   }
 
-  processQueue(freeWorker?: Worker) {
-    if (!freeWorker && this.workers.length >= this.limit) {
-      return;
-    }
+  processQueue(completedTask?: Task<T>) {
     const datum = this.queue.shift();
     if (!datum) {
       return;
     }
     let worker: Worker;
-    if (freeWorker) {
-      worker = freeWorker;
-    } else {
+    if (!completedTask) {
+      if (this.tasks.length >= this.config.limit) {
+        return;
+      }
       worker = new Worker(this.path);
-      this.workers.push(worker);
-      this.prepare(worker);
+      this.config.prepare(worker);
+    } else {
+      worker = completedTask.worker;
     }
-    this.process(worker, datum).then(() => this.processQueue(worker));
+    const deferred = new TimedDeferred<void>(this.config.timeout);
+    const task: Task<T> = { datum, worker, deferred };
+    deferred.promise.then(() => {
+      const taskIndex = this.tasks.indexOf(task);
+      if (taskIndex > -1) {
+        this.tasks.splice(taskIndex, 1);
+      }
+      this.processQueue(task);
+    }).catch(() => this.handleFailedTask(task));
+    deferred.onTimeout = () => this.config.onTimeout(task);
+    this.tasks.push(task);
+    this.config.process(task);
     this.processQueue();
   }
 
-  kill(worker: Worker) {
-    const workerIndex = this.workers.indexOf(worker);
-    if (workerIndex > -1) {
-      this.workers.splice(workerIndex, 1);
+  handleFailedTask(task: Task<T>) {
+    const taskIndex = this.tasks.indexOf(task);
+    if (taskIndex > -1) {
+      this.tasks.splice(taskIndex, 1);
     }
-    worker.terminate();
+    task.worker.terminate();
     this.processQueue();
   }
 
   killAll() {
-    this.workers.forEach(worker => worker.terminate());
-    this.workers = [];
     this.queue = [];
+    [ ...this.tasks ].forEach(task => task.deferred.reject());
   }
 }

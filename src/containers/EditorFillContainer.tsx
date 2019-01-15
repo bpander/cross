@@ -4,8 +4,7 @@ import React from 'react';
 import { connect } from 'react-redux';
 
 import { ContainerProps } from 'containers/definitions/Containers';
-import WorkerPool from 'lib/WorkerPool';
-import timeLimit from 'lib/timeLimit';
+import WorkerPool, { Task } from 'lib/WorkerPool';
 import { editorSelectors } from 'redux-modules/editor';
 import { rootSelectors } from 'redux-modules/root';
 import { shapeSelectors } from 'redux-modules/shape';
@@ -17,28 +16,29 @@ class EditorFillContainer extends React.Component<ContainerProps> {
 
   constructor(props: ContainerProps) {
     super(props);
-    this.workerPool = new WorkerPool('solver.worker.js', 8);
-    this.workerPool.process = this.process;
+    this.workerPool = new WorkerPool('solver.worker.js', {
+      limit: 8,
+      timeout: 1000 * 10,
+      process: this.process,
+      prepare: () => {},
+      onTimeout: this.onTimeout,
+    });
   }
 
-  process = async (worker: Worker, word: string) => {
-    const result: any = await timeLimit(
-      resolve => {
-        worker.addEventListener('message', e => resolve(e.data));
-        worker.postMessage({ type: 'process', payload: word });
-      },
-      1000 * 10,
-    );
-    if (!result) {
-      this.workerPool.kill(worker);
-      console.log('timeout', word);
-    } else {
-      if (result.res.success) {
-        console.log('success', result);
+  onTimeout = (task: Task<string>) => {
+    console.log('timeout', task.datum);
+  };
+
+  process = (task: Task<string>) => {
+    task.worker.onmessage = e => {
+      if (e.data.res.success) {
+        console.log('success', e.data);
       } else {
-        console.log('fail', word);
+        console.log('fail', task.datum);
       }
-    }
+      task.deferred.resolve();
+    };
+    task.worker.postMessage({ type: 'process', payload: task.datum });
   };
 
   componentDidUpdate(prevProps: ContainerProps) {
@@ -66,7 +66,7 @@ class EditorFillContainer extends React.Component<ContainerProps> {
     const usedWords = editorSelectors.getUsedWords(this.props.editor);
     const { letters } = this.props.editor.board;
     this.workerPool.killAll();
-    this.workerPool.prepare = worker => {
+    this.workerPool.config.prepare = worker => {
       worker.postMessage({
         type: 'prepare',
         payload: { grid: letters, slots, fittingWords, usedWords, slot },
