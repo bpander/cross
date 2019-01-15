@@ -5,6 +5,7 @@ import { connect } from 'react-redux';
 
 import { ContainerProps } from 'containers/definitions/Containers';
 import WorkerPool from 'lib/WorkerPool';
+import timeLimit from 'lib/timeLimit';
 import { editorSelectors } from 'redux-modules/editor';
 import { rootSelectors } from 'redux-modules/root';
 import { shapeSelectors } from 'redux-modules/shape';
@@ -21,13 +22,13 @@ class EditorFillContainer extends React.Component<ContainerProps> {
   }
 
   process = async (worker: Worker, word: string) => {
-    const result: any = await Promise.race([
-      new Promise(resolve => {
+    const result: any = await timeLimit(
+      resolve => {
         worker.addEventListener('message', e => resolve(e.data));
         worker.postMessage({ type: 'process', payload: word });
-      }),
-      new Promise(resolve => setTimeout(resolve, 1000 * 20)),
-    ]);
+      },
+      1000 * 10,
+    );
     if (!result) {
       this.workerPool.kill(worker);
       console.log('timeout', word);
