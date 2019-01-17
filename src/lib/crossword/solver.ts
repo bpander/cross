@@ -9,7 +9,9 @@ const only = (words: string[], index: number, char: string): string[] => {
   return words.filter(word => word.slice(index, index + 1) === char);
 };
 
-const getSlotWithLeastFittingWords = (slots: Types.Slot[], fittingWords: Types.FittingWords): Types.Slot | undefined => {
+const getSlotWithLeastFittingWords = (
+  slots: Types.Slot[], fittingWords: Types.FittingWords,
+): Types.Slot | undefined => {
   let slotWithLeastFittingWords: Types.Slot | undefined;
   let previousMin = Infinity;
   slots.forEach(slot => {

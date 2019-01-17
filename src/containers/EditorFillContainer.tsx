@@ -4,7 +4,7 @@ import React from 'react';
 import { connect } from 'react-redux';
 
 import { ContainerProps } from 'containers/definitions/Containers';
-import WorkerPool, { Task } from 'lib/WorkerPool';
+import ThreadPool, { Thread } from 'lib/ThreadPool';
 import { editorSelectors } from 'redux-modules/editor';
 import { rootSelectors } from 'redux-modules/root';
 import { shapeSelectors } from 'redux-modules/shape';
@@ -12,40 +12,40 @@ import { mapValues } from 'util/objects';
 
 class EditorFillContainer extends React.Component<ContainerProps> {
 
-  workerPool: WorkerPool<string>;
+  threadPool: ThreadPool<string>;
 
   constructor(props: ContainerProps) {
     super(props);
-    this.workerPool = new WorkerPool('solver.worker.js', {
+    this.threadPool = new ThreadPool('solver.worker.js', {
       limit: 8,
       timeout: 1000 * 10,
-      process: this.process,
-      prepare: () => {},
-      onTimeout: this.onTimeout,
+      onThreadCreated: () => {},
+      onThreadReady: this.onThreadReady,
+      onThreadTimeout: this.onThreadTimeout,
     });
   }
 
-  onTimeout = (task: Task<string>) => {
-    console.log('timeout', task.datum);
+  onThreadTimeout = (thread: Thread<string>) => {
+    console.log('timeout', thread.datum);
   };
 
-  process = (task: Task<string>) => {
-    task.worker.onmessage = e => {
+  onThreadReady = (thread: Thread<string>) => {
+    thread.worker.onmessage = e => {
       if (e.data.res.success) {
         console.log('success', e.data);
       } else {
-        console.log('fail', task.datum);
+        console.log('fail', thread.datum);
       }
-      task.deferred.resolve();
+      thread.deferred.resolve();
     };
-    task.worker.postMessage({ type: 'process', payload: task.datum });
+    thread.worker.postMessage({ type: 'process', payload: thread.datum });
   };
 
   componentDidUpdate(prevProps: ContainerProps) {
     const prevSlot = editorSelectors.getSlotAtCursor(prevProps.editor);
     const slot = editorSelectors.getSlotAtCursor(this.props.editor);
     if (!slot) {
-      this.workerPool.killAll();
+      this.threadPool.killAll();
       return;
     }
     if (slot === prevSlot) {
@@ -65,18 +65,18 @@ class EditorFillContainer extends React.Component<ContainerProps> {
     }
     const usedWords = editorSelectors.getUsedWords(this.props.editor);
     const { letters } = this.props.editor.board;
-    this.workerPool.killAll();
-    this.workerPool.config.prepare = worker => {
-      worker.postMessage({
+    this.threadPool.killAll();
+    this.threadPool.config.onThreadCreated = thread => {
+      thread.worker.postMessage({
         type: 'prepare',
         payload: { grid: letters, slots, fittingWords, usedWords, slot },
       });
     };
-    this.workerPool.enqueue(fittingWordsAtSlot);
+    this.threadPool.enqueue(fittingWordsAtSlot);
   }
 
   componentWillUnmount() {
-    this.workerPool.killAll();
+    this.threadPool.killAll();
   }
 
   render() {
