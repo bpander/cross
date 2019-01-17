@@ -4,6 +4,7 @@ import React from 'react';
 import { connect } from 'react-redux';
 
 import { ContainerProps } from 'containers/definitions/Containers';
+import { Constraints } from 'lib/crossword/Types';
 import ThreadPool, { Thread } from 'lib/ThreadPool';
 import { editorSelectors } from 'redux-modules/editor';
 import { rootSelectors } from 'redux-modules/root';
@@ -63,13 +64,17 @@ class EditorFillContainer extends React.Component<ContainerProps> {
     if (!fittingWordsAtSlot.length) {
       console.log('no fitting words');
     }
-    const usedWords = editorSelectors.getUsedWords(this.props.editor);
-    const { letters } = this.props.editor.board;
     this.threadPool.killAll();
     this.threadPool.config.onThreadCreated = thread => {
+      const constraints: Constraints = {
+        slots,
+        fittingWords,
+        slot,
+        closedSet: {}, // TODO: Replace getUsedWords with getClosedSet
+      };
       thread.worker.postMessage({
         type: 'prepare',
-        payload: { grid: letters, slots, fittingWords, usedWords, slot },
+        payload: constraints,
       });
     };
     this.threadPool.enqueue(fittingWordsAtSlot);
