@@ -31,6 +31,9 @@ export const rootSelectors = {
             if (!pattern.includes('.')) {
               return null;
             }
+            if (pattern.search(/[A-Z]/) === -1) {
+              return wordsGrouped[pattern.length];
+            }
             const re = new RegExp(`^${pattern}$`);
             const r = wordsGrouped[pattern.length].filter(word => re.test(word));
             return r;
