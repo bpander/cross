@@ -12,18 +12,7 @@ var __assign = (this && this.__assign) || function () {
 };
 var ctx = self; // tslint:disable-line no-any
 // export { ctx };
-var initialGrid;
-var initialSlots;
-var initialFittingWords;
-var initialUsedWords;
-var initialSlot;
-var fillWordAt = function (grid, word, slot) {
-    var gridCopy = grid.slice();
-    slot.cells.forEach(function (cell, i) {
-        gridCopy[cell] = word.slice(i, i + 1);
-    });
-    return gridCopy;
-};
+var initialConstraints;
 var only = function (words, index, char) {
     return words.filter(function (word) { return word.slice(index, index + 1) === char; });
 };
@@ -43,48 +32,52 @@ var getSlotWithLeastFittingWords = function (slots, fittingWords) {
     });
     return slotWithLeastFittingWords;
 };
-var fillWord = function (grid, slots, fittingWords, usedWords, word, slot) {
-    var _a;
-    var newGrid = fillWordAt(grid, word, slot);
-    var newFittingWords = __assign({}, fittingWords, (_a = {}, _a[slot.id] = null, _a));
-    var hasZero = slot.intersections.some(function (intersection) {
-        var words = newFittingWords[intersection.otherId];
+var hasWord = function (closedSet, word) {
+    for (var key in closedSet) {
+        if (closedSet[key] === word) {
+            return true;
+        }
+    }
+    return false;
+};
+var fillWord = function (constraints, word) {
+    var _a, _b;
+    var slots = constraints.slots;
+    var fittingWords = __assign({}, constraints.fittingWords, (_a = {}, _a[constraints.slot.id] = null, _a));
+    var hasZero = constraints.slot.intersections.some(function (intersection) {
+        var words = fittingWords[intersection.otherId];
         if (!words) {
             return false;
         }
-        var char = newGrid[intersection.cell];
+        var char = word.substr(intersection.index, 1);
         var newWords = only(words, intersection.otherIndex, char);
-        newFittingWords[intersection.otherId] = newWords;
+        fittingWords[intersection.otherId] = newWords;
         return newWords.length === 0;
     });
     if (hasZero) {
         return { success: false };
     }
-    var nextSlot = getSlotWithLeastFittingWords(slots, newFittingWords);
-    if (!nextSlot) {
-        return { success: true, grid: newGrid };
+    var closedSet = __assign({}, constraints.closedSet, (_b = {}, _b[constraints.slot.id] = word, _b));
+    var slot = getSlotWithLeastFittingWords(slots, fittingWords);
+    if (!slot) {
+        return { success: true, closedSet: closedSet };
     }
-    var newUsedWords = usedWords.concat([word]);
     var res = { success: false };
-    newFittingWords[nextSlot.id].some(function (nextWord) {
-        if (newUsedWords.indexOf(nextWord) > -1) {
+    fittingWords[slot.id].some(function (nextWord) {
+        if (hasWord(closedSet, nextWord)) {
             return false;
         }
-        res = fillWord(newGrid, slots, newFittingWords, newUsedWords, nextWord, nextSlot);
+        res = fillWord({ slots: slots, fittingWords: fittingWords, closedSet: closedSet, slot: slot }, nextWord);
         return res.success;
     });
     return res;
 };
-var prepare = function (data) {
-    initialGrid = data.grid;
-    initialSlots = data.slots;
-    initialFittingWords = data.fittingWords;
-    initialUsedWords = data.usedWords;
-    initialSlot = data.slot;
+var prepare = function (constraints) {
+    initialConstraints = constraints;
 };
 var process = function (word) {
-    var res = fillWord(initialGrid, initialSlots, initialFittingWords, initialUsedWords, word, initialSlot);
-    ctx.postMessage({ res: res, id: initialSlot.id, word: word });
+    var res = fillWord(initialConstraints, word);
+    ctx.postMessage({ res: res, id: initialConstraints.slot.id, word: word });
 };
 ctx.addEventListener('message', function (e) {
     switch (e.data.type) {

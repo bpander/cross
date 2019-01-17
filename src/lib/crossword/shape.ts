@@ -1,19 +1,8 @@
-import groupBy from 'lodash/groupBy';
-
 import { includes, times } from 'util/arrays';
 import { values } from 'util/objects';
 
 import * as Enums from './Enums';
 import * as Types from './Types';
-
-// const flipMap: Dictionary<Direction> = {
-//   [Enums.Direction.Across]: Enums.Direction.Down,
-//   [Enums.Direction.Down]: Enums.Direction.Across,
-// };
-
-// export const toggleDirection = (direction: Direction) => {
-//   return flipMap[direction];
-// };
 
 const hasBorderAbove = (shape: Types.Shape, cell: Types.Cell): boolean => {
   return cell < shape.width || includes(shape.blocks, cell - shape.width);
@@ -89,12 +78,12 @@ export const getSlots = (shape: Types.Shape): Types.Slot[] => {
           return false;
         }
         otherSlot.intersections.push({
-          cell,
+          index: otherSlotIntersectionIndex,
           otherId: slot!.id,
           otherIndex: i,
         });
         slot!.intersections.push({
-          cell,
+          index: i,
           otherId: otherSlot.id,
           otherIndex: otherSlotIntersectionIndex,
         });
@@ -104,18 +93,4 @@ export const getSlots = (shape: Types.Shape): Types.Slot[] => {
   }
 
   return slots;
-};
-
-// TODO: Move this to a selector
-export const getCellToClueMap = (slots: Types.Slot[]): Types.CellToClueMap => {
-  const cellToClueMap: Types.CellToClueMap = {};
-  slots.forEach(slot => {
-    cellToClueMap[slot.cells[0]] = slot.clue;
-  });
-  return cellToClueMap;
-};
-
-// TODO: Move this to a selector
-export const getWordCounts = (slots: Types.Slot[]): Types.WordCountMap => {
-  return groupBy(slots, slot => slot.cells.length);
 };

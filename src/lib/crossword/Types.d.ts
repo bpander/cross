@@ -9,7 +9,7 @@ export interface Shape {
 type Cell = number; // index in a grid
 
 interface Intersection {
-  cell: Cell;
+  index: number;
   otherId: string;
   otherIndex: number;
 }
@@ -26,10 +26,19 @@ export interface CellToClueMap {
   [cell: number]: number;
 }
 
-interface WordCountMap { [wordLength: number]: Slot[]; }
-
-interface FittingWords {
+export interface FittingWords {
   [slotId: string]: string[] | null; // null means slot is closed
 }
 
-type AutoFillResult = { success: true; grid: string[]; } | { success: false };
+export interface ClosedSet {
+  [slotId: string]: string;
+}
+
+export type FillResult = { success: true; closedSet: ClosedSet; } | { success: false };
+
+export interface Constraints {
+  slots: Slot[];
+  fittingWords: FittingWords;
+  closedSet: ClosedSet;
+  slot: Slot;
+}

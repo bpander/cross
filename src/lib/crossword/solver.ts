@@ -3,19 +3,7 @@ import * as Types from './Types';
 const ctx: Worker = self as any; // tslint:disable-line no-any
 export { ctx };
 
-let initialGrid: string[];
-let initialSlots: Types.Slot[];
-let initialFittingWords: Types.FittingWords;
-let initialUsedWords: string[];
-let initialSlot: Types.Slot;
-
-const fillWordAt = (grid: string[], word: string, slot: Types.Slot): string[] => {
-  const gridCopy = [ ...grid ];
-  slot.cells.forEach((cell, i) => {
-    gridCopy[cell] = word.slice(i, i + 1);
-  });
-  return gridCopy;
-};
+let initialConstraints: Types.Constraints;
 
 const only = (words: string[], index: number, char: string): string[] => {
   return words.filter(word => word.slice(index, index + 1) === char);
@@ -38,54 +26,57 @@ const getSlotWithLeastFittingWords = (slots: Types.Slot[], fittingWords: Types.F
   return slotWithLeastFittingWords;
 };
 
-const fillWord = (grid: string[], slots: Types.Slot[], fittingWords: Types.FittingWords, usedWords: string[], word: string, slot: Types.Slot): Types.AutoFillResult => {
-  const newGrid = fillWordAt(grid, word, slot);
-  const newFittingWords: Types.FittingWords = {
-    ...fittingWords,
-    [slot.id]: null,
+const hasWord = (closedSet: Types.ClosedSet, word: string): boolean => {
+  for (const key in closedSet) {
+    if (closedSet[key] === word) {
+      return true;
+    }
+  }
+  return false;
+};
+
+const fillWord = (constraints: Types.Constraints, word: string): Types.FillResult => {
+  const slots = constraints.slots;
+  const fittingWords: Types.FittingWords = {
+    ...constraints.fittingWords,
+    [constraints.slot.id]: null,
   };
-  const hasZero = slot.intersections.some(intersection => {
-    const words = newFittingWords[intersection.otherId];
+  const hasZero = constraints.slot.intersections.some(intersection => {
+    const words = fittingWords[intersection.otherId];
     if (!words) {
       return false;
     }
-    const char = newGrid[intersection.cell];
+    const char = word.substr(intersection.index, 1);
     const newWords = only(words, intersection.otherIndex, char);
-    newFittingWords[intersection.otherId] = newWords;
+    fittingWords[intersection.otherId] = newWords;
     return newWords.length === 0;
   });
   if (hasZero) {
     return { success: false };
   }
-  const nextSlot = getSlotWithLeastFittingWords(slots, newFittingWords);
-  if (!nextSlot) {
-    return { success: true, grid: newGrid };
+  const closedSet = { ...constraints.closedSet, [constraints.slot.id]: word };
+  const slot = getSlotWithLeastFittingWords(slots, fittingWords);
+  if (!slot) {
+    return { success: true, closedSet };
   }
-  const newUsedWords = [ ...usedWords, word ];
-  let res: Types.AutoFillResult = { success: false };
-  newFittingWords[nextSlot.id]!.some(nextWord => {
-    if (newUsedWords.indexOf(nextWord) > -1) {
+  let res: Types.FillResult = { success: false };
+  fittingWords[slot.id]!.some(nextWord => {
+    if (hasWord(closedSet, nextWord)) {
       return false;
     }
-    res = fillWord(newGrid, slots, newFittingWords, newUsedWords, nextWord, nextSlot);
+    res = fillWord({ slots, fittingWords, closedSet, slot }, nextWord);
     return res.success;
   });
   return res;
 };
 
-const prepare = (data: any) => {
-  initialGrid = data.grid;
-  initialSlots = data.slots;
-  initialFittingWords = data.fittingWords;
-  initialUsedWords = data.usedWords;
-  initialSlot = data.slot;
+const prepare = (constraints: Types.Constraints) => {
+  initialConstraints = constraints;
 };
 
 const process = (word: string) => {
-  const res = fillWord(
-    initialGrid, initialSlots, initialFittingWords, initialUsedWords, word, initialSlot,
-  );
-  ctx.postMessage({ res, id: initialSlot.id, word });
+  const res = fillWord(initialConstraints, word);
+  ctx.postMessage({ res, id: initialConstraints.slot.id, word });
 };
 
 ctx.addEventListener('message', e => {
