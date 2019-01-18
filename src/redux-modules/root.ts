@@ -9,7 +9,6 @@ import { dictionaryReducer, dictionarySelectors } from 'redux-modules/dictionary
 import { editorReducer } from 'redux-modules/editor';
 import { shapeSelectors } from 'redux-modules/shape';
 import { mapValues } from 'util/objects';
-import BoardState from './definitions/BoardState';
 
 export const createRootReducer = (history: History): Reducer<RootState, AnyAction> => {
   return combineReducers({
@@ -19,27 +18,36 @@ export const createRootReducer = (history: History): Reducer<RootState, AnyActio
   });
 };
 
+const getFittingWordsGetters = createSelector(
+  (state: RootState) => shapeSelectors.getSlots(state.editor.shape),
+  (state: RootState) => dictionarySelectors.getWordsGrouped(state.dictionary),
+  (slots, wordsGrouped) => {
+    return mapValues(keyBy(slots, 'id'), slot => {
+      return createSelector(
+        (letters: string[]) => slot.cells.map(cell => letters[cell] || '.').join(''),
+        pattern => {
+          if (!pattern.includes('.')) {
+            return null;
+          }
+          if (pattern.search(/[A-Z]/) === -1) {
+            return wordsGrouped[pattern.length];
+          }
+          const re = new RegExp(`^${pattern}$`);
+          const r = wordsGrouped[pattern.length].filter(word => re.test(word));
+          return r;
+        },
+      );
+    });
+  },
+);
+
 export const rootSelectors = {
-  getFittingWordsGetters: createSelector(
-    (state: RootState) => shapeSelectors.getSlots(state.editor.shape),
-    (state: RootState) => dictionarySelectors.getWordsGrouped(state.dictionary),
-    (slots, wordsGrouped) => {
-      return mapValues(keyBy(slots, 'id'), slot => {
-        return createSelector(
-          (boardState: BoardState) => slot.cells.map(cell => boardState.letters[cell] || '.').join(''),
-          pattern => {
-            if (!pattern.includes('.')) {
-              return null;
-            }
-            if (pattern.search(/[A-Z]/) === -1) {
-              return wordsGrouped[pattern.length];
-            }
-            const re = new RegExp(`^${pattern}$`);
-            const r = wordsGrouped[pattern.length].filter(word => re.test(word));
-            return r;
-          },
-        );
-      });
-    },
+
+  getFittingWordsGetters,
+
+  getFittingWords: createSelector(
+    (state: RootState) => getFittingWordsGetters(state),
+    (state: RootState) => state.editor.board.letters,
+    (getters, letters) => mapValues(getters, getter => getter(letters)),
   ),
 };
