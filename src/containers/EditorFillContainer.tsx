@@ -19,11 +19,12 @@ class EditorFillContainer extends React.Component<ContainerProps> {
     (props: ContainerProps) => shapeSelectors.getSlots(props.editor.shape),
     (props: ContainerProps) => rootSelectors.getFittingWords(props),
     (props: ContainerProps) => editorSelectors.getSlotAtCursor(props.editor),
-    (slots, fittingWords, slot) => {
+    (props: ContainerProps) => editorSelectors.getClosedSet(props.editor),
+    (slots, fittingWords, slot, closedSet) => {
       if (!slot) {
         return null;
       }
-      const constraints: Constraints = { slots, fittingWords, slot, closedSet: {} };
+      const constraints: Constraints = { slots, fittingWords, slot, closedSet };
       return constraints;
     },
   );

@@ -4,6 +4,7 @@ import { createSelector } from 'reselect';
 
 import { BLACK_SYMBOL } from 'config/global';
 import * as Enums from 'lib/crossword/Enums';
+import { ClosedSet } from 'lib/crossword/Types';
 import { boardActions, boardReducer } from 'redux-modules/board';
 import EditorState from 'redux-modules/definitions/EditorState';
 import RootThunkAction from 'redux-modules/definitions/RootThunkAction';
@@ -59,11 +60,11 @@ export const editorSelectors = {
     },
   ),
 
-  getUsedWords: createSelector(
+  getClosedSet: createSelector(
     (editorState: EditorState) => shapeSelectors.getSlots(editorState.shape),
     (editorState: EditorState) => editorState.board.letters,
     (slots, letters) => {
-      const usedWords: string[] = [];
+      const closedSet: ClosedSet = {};
       slots.forEach(slot => {
         let runningChars: string = '';
         for (let i = 0; i < slot.cells.length; i++) {
@@ -73,9 +74,9 @@ export const editorSelectors = {
           }
           runningChars += char;
         }
-        usedWords.push(runningChars);
+        closedSet[slot.id] = runningChars;
       });
-      return usedWords;
+      return closedSet;
     },
   ),
 
