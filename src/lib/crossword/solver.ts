@@ -38,6 +38,9 @@ const hasWord = (closedSet: Types.ClosedSet, word: string): boolean => {
 };
 
 const fillWord = (constraints: Types.Constraints, word: string): Types.FillResult => {
+  if (hasWord(constraints.closedSet, word)) {
+    return { success: false };
+  }
   const slots = constraints.slots;
   const fittingWords: Types.FittingWords = {
     ...constraints.fittingWords,
@@ -63,9 +66,6 @@ const fillWord = (constraints: Types.Constraints, word: string): Types.FillResul
   }
   let res: Types.FillResult = { success: false };
   fittingWords[slot.id]!.some(nextWord => {
-    if (hasWord(closedSet, nextWord)) {
-      return false;
-    }
     res = fillWord({ slots, fittingWords, closedSet, slot }, nextWord);
     return res.success;
   });

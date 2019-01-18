@@ -42,6 +42,9 @@ var hasWord = function (closedSet, word) {
 };
 var fillWord = function (constraints, word) {
     var _a, _b;
+    if (hasWord(constraints.closedSet, word)) {
+        return { success: false };
+    }
     var slots = constraints.slots;
     var fittingWords = __assign({}, constraints.fittingWords, (_a = {}, _a[constraints.slot.id] = null, _a));
     var hasZero = constraints.slot.intersections.some(function (intersection) {
@@ -64,9 +67,6 @@ var fillWord = function (constraints, word) {
     }
     var res = { success: false };
     fittingWords[slot.id].some(function (nextWord) {
-        if (hasWord(closedSet, nextWord)) {
-            return false;
-        }
         res = fillWord({ slots: slots, fittingWords: fittingWords, closedSet: closedSet, slot: slot }, nextWord);
         return res.success;
     });

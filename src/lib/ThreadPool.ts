@@ -12,6 +12,7 @@ interface ThreadPoolConfig<T> {
   onThreadCreated: (thread: Thread<T>) => void;
   onThreadReady: (thread: Thread<T>) => void;
   onThreadTimeout: (thread: Thread<T>) => void;
+  onQueueEmpty: () => void;
 }
 
 export default class ThreadPool<T> {
@@ -48,8 +49,10 @@ export default class ThreadPool<T> {
   }
 
   processQueue(freeThread?: Thread<T>) {
-    const datum = this.queue.shift();
-    if (!datum) {
+    if (!this.queue.length) {
+      if (!this.threads.length) {
+        this.config.onQueueEmpty();
+      }
       return;
     }
     let thread: Thread<T>;
@@ -57,8 +60,10 @@ export default class ThreadPool<T> {
       if (this.threads.length >= this.config.limit) {
         return;
       }
+      const datum = this.queue.shift()!;
       thread = this.createThread(datum);
     } else {
+      const datum = this.queue.shift()!;
       thread = this.repurposeThread(freeThread, datum);
     }
     thread.deferred.promise.then(() => {

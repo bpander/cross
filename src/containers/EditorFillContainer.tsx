@@ -55,6 +55,7 @@ class EditorFillContainer extends React.Component<ContainerProps> {
       onThreadCreated: this.onThreadCreated,
       onThreadReady: this.onThreadReady,
       onThreadTimeout: this.onThreadTimeout,
+      onQueueEmpty: () => console.log('done'),
     });
   }
 
