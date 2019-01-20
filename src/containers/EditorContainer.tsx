@@ -13,7 +13,7 @@ import EditorStructureContainer from 'containers/EditorStructureContainer';
 import { boardActions } from 'redux-modules/board';
 import { editorActions } from 'redux-modules/editor';
 import { fetchWordList } from 'state/dictionary';
-import { dictionaryLens, StateContext } from 'state/root';
+import { l, StateContext } from 'state/root';
 import { getIndex, getXY } from 'util/grid2Ds';
 
 type EditorProps = ContainerProps<{ puzzleId?: string; }>;
@@ -54,7 +54,7 @@ class EditorContainer extends React.Component<EditorProps, EditorContainerState>
   }
 
   async componentDidMount() {
-    this.context.update(await fetchWordList(dictionaryLens));
+    fetchWordList(this.context, l.dictionary)();
     window.addEventListener('keydown', this.onKeyDown);
   }
 

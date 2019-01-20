@@ -5,7 +5,7 @@ export interface Middleware<T> {
 }
 
 interface Update<T> {
-  (updater: (prevState: T) => T): void;
+  (newState: T): void;
 }
 
 export interface Store<T> {
@@ -30,8 +30,8 @@ export default function createStateContext<T>(defaultValue: T, middlewares: Midd
       };
     }
 
-    update: Update<T> = (updater: (prevState: T) => T) => {
-      const state = middlewares.reduce((s, m) => m(s, this.state.state), updater(this.state.state));
+    update: Update<T> = (newState: T) => {
+      const state = middlewares.reduce((s, m) => m(s, this.state.state), newState);
       this.setState({ state });
     };
 
