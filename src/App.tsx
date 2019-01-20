@@ -2,11 +2,14 @@ import React from 'react';
 import { Route } from 'react-router';
 
 import EditorContainer from 'containers/EditorContainer';
+import { StateProvider } from 'state/root';
 
 class App extends React.Component {
   render() {
     return (
-      <Route component={EditorContainer} />
+      <StateProvider>
+        <Route component={EditorContainer} />
+      </StateProvider>
     );
   }
 }

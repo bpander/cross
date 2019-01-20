@@ -11,8 +11,9 @@ import { ContainerProps } from 'containers/definitions/Containers';
 import EditorFillContainer from 'containers/EditorFillContainer';
 import EditorStructureContainer from 'containers/EditorStructureContainer';
 import { boardActions } from 'redux-modules/board';
-import { dictionaryActions } from 'redux-modules/dictionary';
 import { editorActions } from 'redux-modules/editor';
+import { fetchWordList } from 'state/dictionary';
+import { dictionaryLens, StateContext } from 'state/root';
 import { getIndex, getXY } from 'util/grid2Ds';
 
 type EditorProps = ContainerProps<{ puzzleId?: string; }>;
@@ -23,7 +24,10 @@ interface EditorContainerState {
 
 class EditorContainer extends React.Component<EditorProps, EditorContainerState> {
 
-  static tabs: Tab[] = [
+  static contextType = StateContext;
+  context!: React.ContextType<typeof StateContext>;
+
+  tabs: Tab[] = [
     {
       label: 'Structure',
       panel: () => <Route component={EditorStructureContainer} />,
@@ -50,7 +54,7 @@ class EditorContainer extends React.Component<EditorProps, EditorContainerState>
   }
 
   async componentDidMount() {
-    this.props.dispatch(dictionaryActions.fetchWordList());
+    this.context.update(await fetchWordList(dictionaryLens));
     window.addEventListener('keydown', this.onKeyDown);
   }
 
@@ -119,7 +123,7 @@ class EditorContainer extends React.Component<EditorProps, EditorContainerState>
         </div>
         <div className="grid__col">
           <Tabs
-            tabs={EditorContainer.tabs}
+            tabs={this.tabs}
             active={this.state.tab}
             onChange={this.onTabChange}
           />
