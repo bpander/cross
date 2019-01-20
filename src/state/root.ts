@@ -19,10 +19,14 @@ const defaultValue: RootState = {
   editor: viewer.defaultValue,
 };
 
-export const l = lens<RootState>();
+const l = lens<RootState>();
+export const editorLens = l.k('editor');
+export const editorBoardLens = editorLens.k('board');
+export const editorShapeLens = editorLens.k('shape');
+export const dictionaryLens = l.k('dictionary');
 
 const middlewares = [
-  getLocalStorageMiddleware('cross', { 'editor': l.editor }),
+  getLocalStorageMiddleware('cross', { 'editor': editorLens }),
 ];
 const { StateProvider, StateContext } = createStateContext(defaultValue, middlewares);
 export { StateProvider, StateContext };

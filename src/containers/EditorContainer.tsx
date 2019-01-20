@@ -11,7 +11,7 @@ import EditorFillContainer from 'containers/EditorFillContainer';
 import EditorStructureContainer from 'containers/EditorStructureContainer';
 import { setCursor, toggleDirection } from 'state/board';
 import { fetchWordList } from 'state/dictionary';
-import { l, StateContext } from 'state/root';
+import { dictionaryLens, editorBoardLens, editorLens, StateContext } from 'state/root';
 import { setValueAtCursor } from 'state/viewer';
 import { getIndex, getXY } from 'util/grid2Ds';
 
@@ -53,7 +53,7 @@ class EditorContainer extends React.Component<EditorProps, EditorContainerState>
   }
 
   async componentDidMount() {
-    fetchWordList()(this.context, l.dictionary);
+    fetchWordList()(this.context, dictionaryLens);
     window.addEventListener('keydown', this.onKeyDown);
   }
 
@@ -76,7 +76,7 @@ class EditorContainer extends React.Component<EditorProps, EditorContainerState>
         const min = getIndex(shape.width, [ x, 0 ]);
         const max = getIndex(shape.width, [ x, shape.width - 1 ]);
         const cursor = clamp(board.cursor + shape.width * directionMultiplier, min, max);
-        setCursor(cursor)(this.context, l.editor.board);
+        setCursor(cursor)(this.context, editorBoardLens);
         break;
       }
 
@@ -89,15 +89,15 @@ class EditorContainer extends React.Component<EditorProps, EditorContainerState>
         const min = getIndex(shape.width, [ 0, y ]);
         const max = getIndex(shape.width, [ shape.width - 1, y ]);
         const cursor = clamp(board.cursor + directionMultiplier, min, max);
-        setCursor(cursor)(this.context, l.editor.board);
+        setCursor(cursor)(this.context, editorBoardLens);
         break;
       }
 
-      case 'Enter': return toggleDirection()(this.context, l.editor.board);
-      case 'Backspace': return setValueAtCursor('')(this.context, l.editor);
+      case 'Enter': return toggleDirection()(this.context, editorBoardLens);
+      case 'Backspace': return setValueAtCursor('')(this.context, editorLens);
       default:
         if (e.key.match(/^[a-z]$/i) || e.key === BLACK_SYMBOL) {
-          setValueAtCursor(e.key.toUpperCase())(this.context, l.editor);
+          setValueAtCursor(e.key.toUpperCase())(this.context, editorLens);
         }
     }
   };

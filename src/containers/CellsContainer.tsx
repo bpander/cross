@@ -5,7 +5,7 @@ import { BOARD_WIDTH } from 'config/global';
 import { ContainerProps } from 'containers/definitions/Containers';
 import * as Types from 'lib/crossword/Types';
 import { setCursor, toggleDirection } from 'state/board';
-import { l, StateContext } from 'state/root';
+import { editorBoardLens, StateContext } from 'state/root';
 import { getCellToClueMap } from 'state/shape';
 import { getSlotAtCursor } from 'state/viewer';
 import { includes, times } from 'util/arrays';
@@ -25,9 +25,9 @@ class CellsContainer extends React.Component<ContainerProps> {
       <g
         key={cell}
         onClick={() => {
-          setCursor(cell)(this.context, l.editor.board);
+          setCursor(cell)(this.context, editorBoardLens);
           if (cell === board.cursor) {
-            toggleDirection()(this.context, l.editor.board);
+            toggleDirection()(this.context, editorBoardLens);
           }
         }}
       >

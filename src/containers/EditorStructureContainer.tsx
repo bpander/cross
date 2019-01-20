@@ -17,7 +17,7 @@ import iconTextRotationNone from 'icons/iconTextRotationNone';
 import iconUndo from 'icons/iconUndo';
 import * as Enums from 'lib/crossword/Enums';
 import { toggleDirection } from 'state/board';
-import { l, StateContext } from 'state/root';
+import { editorBoardLens, editorLens, StateContext } from 'state/root';
 import { getWordCounts } from 'state/shape';
 import { setValueAtCursor } from 'state/viewer';
 import { includes } from 'util/arrays';
@@ -28,11 +28,11 @@ class EditorStructureContainer extends React.Component<ContainerProps> {
   context!: React.ContextType<typeof StateContext>;
 
   onToggleBlackClick: React.MouseEventHandler<HTMLButtonElement> = () => {
-    setValueAtCursor(BLACK_SYMBOL)(this.context, l.editor);
+    setValueAtCursor(BLACK_SYMBOL)(this.context, editorLens);
   };
 
   onToggleDirectionClick: React.MouseEventHandler<HTMLButtonElement> = () => {
-    toggleDirection()(this.context, l.editor.board);
+    toggleDirection()(this.context, editorBoardLens);
   };
 
   renderToolbar() {
