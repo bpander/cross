@@ -33,11 +33,10 @@ export const setValueAtCursor = (value: string) => <T>(store: Store<T>, lens: Le
         replaceIndex(board.letters, board.cursor, ''), mirrorIndex, '',
       );
       const newBlocks = [ ...shape.blocks, ...uniq([ board.cursor, mirrorIndex ]) ];
-      store.update(
-        lens.k('shape').k('blocks').set(newBlocks)(
-          lens.k('board').k('letters').set(newLetters)(store.state),
-        ),
-      );
+      store.update(lens.set(state => ({
+        shape: { ...state.shape, blocks: newBlocks },
+        board: { ...state.board, letters: newLetters },
+      }))(store.state));
     } else {
       const newBlocks = removeFirst(removeIndex(shape.blocks, blockIndex), mirrorIndex);
       store.update(lens.k('shape').k('blocks').set(newBlocks)(store.state));
@@ -46,11 +45,11 @@ export const setValueAtCursor = (value: string) => <T>(store: Store<T>, lens: Le
   }
   const cursorDirection = (value === '') ? -1 : 1;
   const stepSize = (board.direction === Enums.Direction.Across) ? 1 : shape.width;
-  store.update(
-    lens.k('board').k('letters').set(replaceIndex(board.letters, board.cursor, value))(
-      lens.k('board').k('cursor').set(board.cursor + (cursorDirection * stepSize))(store.state),
-    ),
-  );
+  store.update(lens.k('board').set(state => ({
+    ...state,
+    letters: replaceIndex(board.letters, board.cursor, value),
+    cursor: board.cursor + (cursorDirection * stepSize),
+  }))(store.state));
 };
 
 export const getSlotAtCursor = createSelector(

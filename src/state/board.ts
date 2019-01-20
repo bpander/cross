@@ -21,8 +21,7 @@ const flipMap: Dictionary<Enums.Direction> = {
 };
 
 export const toggleDirection = () => <T>(store: Store<T>, lens: LensImpl<T, BoardState>) => {
-  const direction = flipMap[lens.k('direction').get()(store.state)];
-  store.update(lens.k('direction').set(direction)(store.state));
+  store.update(lens.k('direction').set(direction => flipMap[direction])(store.state));
 };
 
 export const setCursor = (cursor: number) => <T>(store: Store<T>, lens: LensImpl<T, BoardState>) => {
