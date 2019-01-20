@@ -3,6 +3,7 @@ import keyBy from 'lodash/keyBy';
 import { createSelector } from 'reselect';
 
 import createStateContext from 'lib/createStateContext';
+import getLocalStorageMiddleware from 'lib/getLocalStorageMiddleware';
 import * as dictionary from 'state/dictionary';
 import { getSlots } from 'state/shape';
 import * as viewer from 'state/viewer';
@@ -20,7 +21,10 @@ const defaultValue: RootState = {
 
 export const l = lens<RootState>();
 
-const { StateProvider, StateContext } = createStateContext(defaultValue, []);
+const middlewares = [
+  getLocalStorageMiddleware('cross', { 'editor': l.editor }),
+];
+const { StateProvider, StateContext } = createStateContext(defaultValue, middlewares);
 export { StateProvider, StateContext };
 
 export const getFittingWordsGetters = createSelector(

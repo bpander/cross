@@ -25,7 +25,7 @@ export default function createStateContext<T>(defaultValue: T, middlewares: Midd
     constructor(props: {}) {
       super(props);
       this.state = {
-        state: defaultValue,
+        state: middlewares.reduce((s, m) => m(s), defaultValue),
         update: this.update,
       };
     }
