@@ -1,6 +1,5 @@
 import clamp from 'lodash/clamp';
 import React from 'react';
-import { connect } from 'react-redux';
 import { Route } from 'react-router';
 
 import Grid from 'components/Grid';
@@ -133,4 +132,4 @@ class EditorContainer extends React.Component<EditorProps, EditorContainerState>
   }
 }
 
-export default connect(state => state)(EditorContainer);
+export default EditorContainer;

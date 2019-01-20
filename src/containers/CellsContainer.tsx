@@ -1,6 +1,5 @@
 import classNames from 'classnames';
 import React from 'react';
-import { connect } from 'react-redux';
 
 import { BOARD_WIDTH } from 'config/global';
 import { ContainerProps } from 'containers/definitions/Containers';
@@ -81,4 +80,4 @@ class CellsContainer extends React.Component<ContainerProps> {
   }
 }
 
-export default connect(state => state)(CellsContainer);
+export default CellsContainer;

@@ -2,7 +2,6 @@ import maxBy from 'lodash/maxBy';
 import range from 'lodash/range';
 import values from 'lodash/values';
 import React from 'react';
-import { connect } from 'react-redux';
 
 import classNames from 'classnames';
 import { BLACK_SYMBOL } from 'config/global';
@@ -120,4 +119,4 @@ class EditorStructureContainer extends React.Component<ContainerProps> {
   }
 }
 
-export default connect(state => state)(EditorStructureContainer);
+export default EditorStructureContainer;

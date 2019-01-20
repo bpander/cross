@@ -1,7 +1,6 @@
 // tslint:disable no-console
 // TODO: ^Remove when no longer needed
 import React from 'react';
-import { connect } from 'react-redux';
 import { createSelector } from 'reselect';
 
 import { ContainerProps } from 'containers/definitions/Containers';
@@ -100,4 +99,4 @@ class EditorFillContainer extends React.Component<ContainerProps> {
   }
 }
 
-export default connect(state => state)(EditorFillContainer);
+export default EditorFillContainer;
