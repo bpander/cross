@@ -14,7 +14,7 @@ export const defaultValue: DictionaryState = {
   wordList: [],
 };
 
-export const fetchWordList = <T>(store: Store<T>, lens: LensImpl<T, DictionaryState>) => async () => {
+export const fetchWordList = () => async <T>(store: Store<T>, lens: LensImpl<T, DictionaryState>) => {
   const dictResponse = await fetch(dictPath);
   const dictContents = await dictResponse.text();
   const dictResult = parser(dictContents);

@@ -5,15 +5,19 @@ import { connect } from 'react-redux';
 import { BOARD_WIDTH } from 'config/global';
 import { ContainerProps } from 'containers/definitions/Containers';
 import * as Types from 'lib/crossword/Types';
-import { boardActions } from 'redux-modules/board';
-import { editorSelectors } from 'redux-modules/editor';
-import { shapeSelectors } from 'redux-modules/shape';
+import { setCursor, toggleDirection } from 'state/board';
+import { l, StateContext } from 'state/root';
+import { getCellToClueMap } from 'state/shape';
+import { getSlotAtCursor } from 'state/viewer';
 import { includes, times } from 'util/arrays';
 
 class CellsContainer extends React.Component<ContainerProps> {
 
+  static contextType = StateContext;
+  context!: React.ContextType<typeof StateContext>;
+
   renderCell(cell: number, cellToClueMap: { [cell: number]: number; }, highlightedSlot?: Types.Slot) {
-    const { board, shape } = this.props.editor;
+    const { board, shape } = this.context.state.editor;
     const cellSize = BOARD_WIDTH / shape.width;
     const x = (cell % shape.width) * cellSize;
     const y = Math.floor(cell / shape.width) * cellSize;
@@ -22,9 +26,9 @@ class CellsContainer extends React.Component<ContainerProps> {
       <g
         key={cell}
         onClick={() => {
-          this.props.dispatch(boardActions.setCursor(cell));
+          setCursor(cell)(this.context, l.editor.board);
           if (cell === board.cursor) {
-            this.props.dispatch(boardActions.toggleDirection());
+            toggleDirection()(this.context, l.editor.board);
           }
         }}
       >
@@ -65,9 +69,9 @@ class CellsContainer extends React.Component<ContainerProps> {
   }
 
   render() {
-    const { shape } = this.props.editor;
-    const cellToClueMap = shapeSelectors.getCellToClueMap(shape);
-    const slotAtCursor = editorSelectors.getSlotAtCursor(this.props.editor);
+    const { shape } = this.context.state.editor;
+    const cellToClueMap = getCellToClueMap(shape);
+    const slotAtCursor = getSlotAtCursor(this.context.state.editor);
 
     return (
       <g data-group="cells">

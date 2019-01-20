@@ -7,19 +7,22 @@ import { createSelector } from 'reselect';
 import { ContainerProps } from 'containers/definitions/Containers';
 import { Constraints } from 'lib/crossword/Types';
 import ThreadPool, { Thread } from 'lib/ThreadPool';
-import { editorSelectors } from 'redux-modules/editor';
-import { rootSelectors } from 'redux-modules/root';
-import { shapeSelectors } from 'redux-modules/shape';
+import { getFittingWords, getFittingWordsGetters, RootState, StateContext } from 'state/root';
+import { getSlots } from 'state/shape';
+import { getClosedSet, getSlotAtCursor } from 'state/viewer';
 
 class EditorFillContainer extends React.Component<ContainerProps> {
+
+  static contextType = StateContext;
+  context!: React.ContextType<typeof StateContext>;
 
   threadPool: ThreadPool<string>;
 
   getConstraints = createSelector(
-    (props: ContainerProps) => shapeSelectors.getSlots(props.editor.shape),
-    (props: ContainerProps) => rootSelectors.getFittingWords(props),
-    (props: ContainerProps) => editorSelectors.getSlotAtCursor(props.editor),
-    (props: ContainerProps) => editorSelectors.getClosedSet(props.editor),
+    (state: RootState) => getSlots(state.editor.shape),
+    (state: RootState) => getFittingWords(state),
+    (state: RootState) => getSlotAtCursor(state.editor),
+    (state: RootState) => getClosedSet(state.editor),
     (slots, fittingWords, slot, closedSet) => {
       if (!slot) {
         return null;
@@ -30,14 +33,14 @@ class EditorFillContainer extends React.Component<ContainerProps> {
   );
 
   evaluateCandidates = createSelector(
-    (props: ContainerProps) => editorSelectors.getSlotAtCursor(props.editor),
-    (props: ContainerProps) => {
-      const slot = editorSelectors.getSlotAtCursor(props.editor);
+    (state: RootState) => getSlotAtCursor(state.editor),
+    (state: RootState) => {
+      const slot = getSlotAtCursor(state.editor);
       if (!slot) {
         return [];
       }
-      const getters = rootSelectors.getFittingWordsGetters(props);
-      return getters[slot.id](props.editor.board.letters) || [];
+      const getters = getFittingWordsGetters(state);
+      return getters[slot.id](state.editor.board.letters) || [];
     },
     (slot, fittingWordsAtSlot) => {
       this.threadPool.killAll();
@@ -60,7 +63,7 @@ class EditorFillContainer extends React.Component<ContainerProps> {
   }
 
   componentDidUpdate() {
-    setTimeout(() => this.evaluateCandidates(this.props), 0);
+    setTimeout(() => this.evaluateCandidates(this.context.state), 0);
   }
 
   componentWillUnmount() {
@@ -70,7 +73,7 @@ class EditorFillContainer extends React.Component<ContainerProps> {
   onThreadCreated = (thread: Thread<string>) => {
     thread.worker.postMessage({
       type: 'prepare',
-      payload: this.getConstraints(this.props),
+      payload: this.getConstraints(this.context.state),
     });
   };
 
