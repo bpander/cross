@@ -12,7 +12,7 @@ const getLocalStorageMiddleware = <T>(prefix: string, lenses: Dictionary<LensImp
         if (!prevState) {
           const storedValue = JSON.parse(localStorage.getItem(prefix + '.' + key)!);
           if (storedValue) {
-            return lens.set(storedValue)(s);
+            return lens.set((defaultState: {}) => ({ ...defaultState, ...storedValue }))(s);
           }
         }
         const newValue = lens.get()(state);
