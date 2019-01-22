@@ -1,7 +1,12 @@
-import { Setter, LensImpl } from 'lens.ts';
+import { LensImpl, Setter } from 'lens.ts';
 
 export interface Middleware<T> {
   (state: T, prevState?: T): T;
+}
+
+export interface Updater<U> {
+  // tslint:disable-next-line no-any
+  <T>(l: LensImpl<T, U>): (...args: any[]) => Setter<T> | Promise<Setter<T>>;
 }
 
 export interface Listener<T> {
@@ -12,11 +17,6 @@ export interface Unlistener {
   (): void;
 }
 
-export interface Updater<T, U> {
-  (lens: LensImpl<T, U>): Setter<T> | Promise<Setter<T>>;
-}
-
-
 export const compose = <R>(fn1: (a: R) => R, ...fns: Array<(a: R) => R>) =>
   fns.reduce((prevFn, nextFn) => value => prevFn(nextFn(value)), fn1);
 
@@ -26,7 +26,7 @@ export interface Store<T> {
   subscribe: (listener: (newState: T) => void) => Unlistener;
 }
 
-const createStore = <T>(initialState: T, middleware: Middleware<T>): Store<T> =>{
+const createStore = <T>(initialState: T, middleware: Middleware<T>): Store<T> => {
   let state: T = middleware(initialState);
   const listeners: Listener<T>[] = [];
 
@@ -45,7 +45,7 @@ const createStore = <T>(initialState: T, middleware: Middleware<T>): Store<T> =>
       if (index > -1) {
         listeners.splice(index, 1);
       }
-    }
+    };
   };
 
   return { getState, update, subscribe };

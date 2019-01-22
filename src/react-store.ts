@@ -1,8 +1,8 @@
 import React from 'react';
 
 import createStore, { compose } from 'lib/createStore';
-import { defaultValue, editorBoardLens, editorShapeLens } from 'state/root';
 import getLocalStorageMiddleware from 'lib/getLocalStorageMiddleware';
+import { defaultValue, editorBoardLens, editorShapeLens } from 'state/root';
 
 export const store = createStore(
   defaultValue,

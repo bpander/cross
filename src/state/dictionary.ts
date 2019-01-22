@@ -1,8 +1,8 @@
-import { LensImpl } from 'lens.ts';
 import groupBy from 'lodash/groupBy';
 import { createSelector } from 'reselect';
 
 import dictPath from 'data/default.dict';
+import { Updater } from 'lib/createStore';
 import { parser } from 'parsers/dict.parser';
 
 export interface DictionaryState {
@@ -13,11 +13,11 @@ export const defaultValue: DictionaryState = {
   wordList: [],
 };
 
-export const fetchWordList = () => async <T>(lens: LensImpl<T, DictionaryState>) => {
+export const fetchWordList: Updater<DictionaryState> = l => async () => {
   const dictResponse = await fetch(dictPath);
   const dictContents = await dictResponse.text();
   const dictResult = parser(dictContents);
-  return lens.k('wordList').set(dictResult.data);
+  return l.k('wordList').set(dictResult.data);
 };
 
 export const getWordsGrouped = createSelector(

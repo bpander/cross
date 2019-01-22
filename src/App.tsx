@@ -2,7 +2,7 @@ import React from 'react';
 import { Route } from 'react-router';
 
 import EditorContainer from 'containers/EditorContainer';
-import { StoreContext, store } from 'react-store';
+import { store, StoreContext } from 'react-store';
 
 class App extends React.Component {
   componentDidMount() {

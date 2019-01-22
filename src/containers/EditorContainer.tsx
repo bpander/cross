@@ -9,12 +9,12 @@ import CellsContainer from 'containers/CellsContainer';
 import { ContainerProps } from 'containers/definitions/Containers';
 import EditorFillContainer from 'containers/EditorFillContainer';
 import EditorStructureContainer from 'containers/EditorStructureContainer';
+import { StoreContext } from 'react-store';
 import { setCursor, toggleDirection } from 'state/board';
 import { fetchWordList } from 'state/dictionary';
 import { dictionaryLens, editorBoardLens, editorLens } from 'state/root';
 import { setValueAtCursor } from 'state/viewer';
 import { getIndex, getXY } from 'util/grid2Ds';
-import { StoreContext } from 'react-store';
 
 type EditorProps = ContainerProps<{ puzzleId?: string; }>;
 
@@ -55,7 +55,7 @@ class EditorContainer extends React.Component<EditorProps, EditorContainerState>
 
   async componentDidMount() {
     window.addEventListener('keydown', this.onKeyDown);
-    this.context.update(fetchWordList()(dictionaryLens));
+    this.context.update(fetchWordList(dictionaryLens)());
   }
 
   componentWillUnmount() {
@@ -77,7 +77,7 @@ class EditorContainer extends React.Component<EditorProps, EditorContainerState>
         const min = getIndex(shape.width, [ x, 0 ]);
         const max = getIndex(shape.width, [ x, shape.width - 1 ]);
         const cursor = clamp(board.cursor + shape.width * directionMultiplier, min, max);
-        this.context.update(setCursor(cursor)(editorBoardLens));
+        this.context.update(setCursor(editorBoardLens)(cursor));
         break;
       }
 
@@ -90,15 +90,15 @@ class EditorContainer extends React.Component<EditorProps, EditorContainerState>
         const min = getIndex(shape.width, [ 0, y ]);
         const max = getIndex(shape.width, [ shape.width - 1, y ]);
         const cursor = clamp(board.cursor + directionMultiplier, min, max);
-        this.context.update(setCursor(cursor)(editorBoardLens));
+        this.context.update(setCursor(editorBoardLens)(cursor));
         break;
       }
 
-      case 'Enter': return this.context.update(toggleDirection()(editorBoardLens));
-      case 'Backspace': return this.context.update(setValueAtCursor('')(editorLens));
+      case 'Enter': return this.context.update(toggleDirection(editorBoardLens)());
+      case 'Backspace': return this.context.update(setValueAtCursor(editorLens)(''));
       default:
         if (e.key.match(/^[a-z]$/i) || e.key === BLACK_SYMBOL) {
-          this.context.update(setValueAtCursor(e.key.toUpperCase())(editorLens));
+          this.context.update(setValueAtCursor(editorLens)(e.key.toUpperCase()));
         }
     }
   };

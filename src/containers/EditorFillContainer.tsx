@@ -6,10 +6,10 @@ import { createSelector } from 'reselect';
 import { ContainerProps } from 'containers/definitions/Containers';
 import { Constraints } from 'lib/crossword/Types';
 import ThreadPool, { Thread } from 'lib/ThreadPool';
+import { StoreContext } from 'react-store';
 import { getFittingWords, getFittingWordsGetters, RootState } from 'state/root';
 import { getSlots } from 'state/shape';
 import { getClosedSet, getSlotAtCursor } from 'state/viewer';
-import { StoreContext } from 'react-store';
 
 class EditorFillContainer extends React.Component<ContainerProps> {
 

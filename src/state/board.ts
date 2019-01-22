@@ -1,5 +1,5 @@
 import Dictionary from 'definitions/Dictionary';
-import { LensImpl } from 'lens.ts';
+import { Updater } from 'lib/createStore';
 import * as Enums from 'lib/crossword/Enums';
 
 export interface BoardState {
@@ -19,10 +19,10 @@ const flipMap: Dictionary<Enums.Direction> = {
   [Enums.Direction.Down]: Enums.Direction.Across,
 };
 
-export const toggleDirection = () => <T>(lens: LensImpl<T, BoardState>) => {
-  return lens.k('direction').set(direction => flipMap[direction]);
+export const toggleDirection: Updater<BoardState> = l => () => {
+  return l.k('direction').set(direction => flipMap[direction]);
 };
 
-export const setCursor = (cursor: number) => <T>(lens: LensImpl<T, BoardState>) => {
-  return lens.k('cursor').set(cursor);
+export const setCursor: Updater<BoardState> = l => (cursor: number) => {
+  return l.k('cursor').set(cursor);
 };

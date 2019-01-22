@@ -1,8 +1,9 @@
-import { lens, LensImpl } from 'lens.ts';
+import { lens } from 'lens.ts';
 import uniq from 'lodash/uniq';
 import { createSelector } from 'reselect';
 
 import { BLACK_SYMBOL } from 'config/global';
+import { Updater } from 'lib/createStore';
 import * as Enums from 'lib/crossword/Enums';
 import { ClosedSet } from 'lib/crossword/Types';
 import * as Board from 'state/board';
@@ -20,7 +21,8 @@ export const defaultValue: ViewerState = {
   board: Board.defaultValue,
 };
 
-export const setValueAtCursor = (value: string) => <T>(l: LensImpl<T, ViewerState>) => {
+// TODO: Split this up
+export const setValueAtCursor: Updater<ViewerState> = l => (value: string) => {
   return l.set(editor => {
     const { board, shape } = editor;
     if (value === BLACK_SYMBOL) {
@@ -44,14 +46,11 @@ export const setValueAtCursor = (value: string) => <T>(l: LensImpl<T, ViewerStat
     }
     const cursorDirection = (value === '') ? -1 : 1;
     const stepSize = (board.direction === Enums.Direction.Across) ? 1 : shape.width;
-    return {
-      ...editor,
-      board: {
-        ...editor.board,
-        letters: replaceIndex(board.letters, board.cursor, value),
-        cursor: board.cursor + (cursorDirection * stepSize),
-      },
-    };
+    return lens<ViewerState>().k('board').set(state => ({
+      ...state,
+      letters: replaceIndex(state.letters, state.cursor, value),
+      cursor: state.cursor + (cursorDirection * stepSize),
+    }))(editor);
   });
 };
 

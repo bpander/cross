@@ -3,14 +3,14 @@ import React from 'react';
 
 import { BOARD_WIDTH } from 'config/global';
 import { ContainerProps } from 'containers/definitions/Containers';
+import { compose } from 'lib/createStore';
 import * as Types from 'lib/crossword/Types';
+import { StoreContext } from 'react-store';
 import { setCursor, toggleDirection } from 'state/board';
 import { editorBoardLens } from 'state/root';
 import { getCellToClueMap } from 'state/shape';
 import { getSlotAtCursor } from 'state/viewer';
 import { includes, times } from 'util/arrays';
-import { StoreContext } from 'react-store';
-import { compose } from 'lib/createStore';
 
 class CellsContainer extends React.Component<ContainerProps> {
 
@@ -29,10 +29,11 @@ class CellsContainer extends React.Component<ContainerProps> {
         onClick={() => {
           const setters = [];
           if (cell === board.cursor) {
-            setters.push(toggleDirection()(editorBoardLens));
+            setters.push(toggleDirection(editorBoardLens)());
           }
+          // TODO: Figure out how to "batch" updates with Promise<Setter<T>>
           this.context.update(
-            compose(setCursor(cell)(editorBoardLens), ...setters),
+            compose(setCursor(editorBoardLens)(cell) as any, ...setters as any[]),
           );
         }}
       >
