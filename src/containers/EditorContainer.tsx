@@ -11,9 +11,10 @@ import EditorFillContainer from 'containers/EditorFillContainer';
 import EditorStructureContainer from 'containers/EditorStructureContainer';
 import { setCursor, toggleDirection } from 'state/board';
 import { fetchWordList } from 'state/dictionary';
-import { dictionaryLens, editorBoardLens, editorLens, StateContext } from 'state/root';
+import { dictionaryLens, editorBoardLens, editorLens } from 'state/root';
 import { setValueAtCursor } from 'state/viewer';
 import { getIndex, getXY } from 'util/grid2Ds';
+import { StoreContext } from 'react-store';
 
 type EditorProps = ContainerProps<{ puzzleId?: string; }>;
 
@@ -23,8 +24,8 @@ interface EditorContainerState {
 
 class EditorContainer extends React.Component<EditorProps, EditorContainerState> {
 
-  static contextType = StateContext;
-  context!: React.ContextType<typeof StateContext>;
+  static contextType = StoreContext;
+  context!: React.ContextType<typeof StoreContext>;
 
   tabs: Tab[] = [
     {
@@ -53,8 +54,8 @@ class EditorContainer extends React.Component<EditorProps, EditorContainerState>
   }
 
   async componentDidMount() {
-    fetchWordList()(this.context, dictionaryLens);
     window.addEventListener('keydown', this.onKeyDown);
+    this.context.update(fetchWordList()(dictionaryLens));
   }
 
   componentWillUnmount() {
@@ -64,7 +65,7 @@ class EditorContainer extends React.Component<EditorProps, EditorContainerState>
   // TODO: Organize this better
   // tslint:disable-next-line cyclomatic-complexity
   onKeyDown = (e: KeyboardEvent) => {
-    const { board, shape } = this.context.state.editor;
+    const { board, shape } = this.context.getState().editor;
     let directionMultiplier = 1;
     switch (e.key) {
       case 'ArrowUp':
@@ -76,7 +77,7 @@ class EditorContainer extends React.Component<EditorProps, EditorContainerState>
         const min = getIndex(shape.width, [ x, 0 ]);
         const max = getIndex(shape.width, [ x, shape.width - 1 ]);
         const cursor = clamp(board.cursor + shape.width * directionMultiplier, min, max);
-        setCursor(cursor)(this.context, editorBoardLens);
+        this.context.update(setCursor(cursor)(editorBoardLens));
         break;
       }
 
@@ -89,15 +90,15 @@ class EditorContainer extends React.Component<EditorProps, EditorContainerState>
         const min = getIndex(shape.width, [ 0, y ]);
         const max = getIndex(shape.width, [ shape.width - 1, y ]);
         const cursor = clamp(board.cursor + directionMultiplier, min, max);
-        setCursor(cursor)(this.context, editorBoardLens);
+        this.context.update(setCursor(cursor)(editorBoardLens));
         break;
       }
 
-      case 'Enter': return toggleDirection()(this.context, editorBoardLens);
-      case 'Backspace': return setValueAtCursor('')(this.context, editorLens);
+      case 'Enter': return this.context.update(toggleDirection()(editorBoardLens));
+      case 'Backspace': return this.context.update(setValueAtCursor('')(editorLens));
       default:
         if (e.key.match(/^[a-z]$/i) || e.key === BLACK_SYMBOL) {
-          setValueAtCursor(e.key.toUpperCase())(this.context, editorLens);
+          this.context.update(setValueAtCursor(e.key.toUpperCase())(editorLens));
         }
     }
   };
@@ -117,7 +118,7 @@ class EditorContainer extends React.Component<EditorProps, EditorContainerState>
             className="board"
           >
             <Route component={CellsContainer} />
-            <Grid size={this.context.state.editor.shape.width} />
+            <Grid size={this.context.getState().editor.shape.width} />
           </svg>
         </div>
         <div className="grid__col">

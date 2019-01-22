@@ -17,26 +17,27 @@ import iconTextRotationNone from 'icons/iconTextRotationNone';
 import iconUndo from 'icons/iconUndo';
 import * as Enums from 'lib/crossword/Enums';
 import { toggleDirection } from 'state/board';
-import { editorBoardLens, editorLens, StateContext } from 'state/root';
+import { editorBoardLens, editorLens } from 'state/root';
 import { getWordCounts } from 'state/shape';
 import { setValueAtCursor } from 'state/viewer';
 import { includes } from 'util/arrays';
+import { StoreContext } from 'react-store';
 
 class EditorStructureContainer extends React.Component<ContainerProps> {
 
-  static contextType = StateContext;
-  context!: React.ContextType<typeof StateContext>;
+  static contextType = StoreContext;
+  context!: React.ContextType<typeof StoreContext>;
 
   onToggleBlackClick: React.MouseEventHandler<HTMLButtonElement> = () => {
-    setValueAtCursor(BLACK_SYMBOL)(this.context, editorLens);
+    this.context.update(setValueAtCursor(BLACK_SYMBOL)(editorLens));
   };
 
   onToggleDirectionClick: React.MouseEventHandler<HTMLButtonElement> = () => {
-    toggleDirection()(this.context, editorBoardLens);
+    this.context.update(toggleDirection()(editorBoardLens));
   };
 
   renderToolbar() {
-    const { board, shape } = this.context.state.editor;
+    const { board, shape } = this.context.getState().editor;
     const directionIconDef = (board.direction === Enums.Direction.Across)
       ? iconTextRotationNone
       : iconTextRotateVertical;
@@ -92,7 +93,7 @@ class EditorStructureContainer extends React.Component<ContainerProps> {
     );
   }
   render() {
-    const { shape } = this.context.state.editor;
+    const { shape } = this.context.getState().editor;
     const wordCounts = getWordCounts(shape);
     const maxGroupLength = maxBy(values(wordCounts), cellGroups => cellGroups.length)!.length;
     return (

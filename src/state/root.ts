@@ -2,8 +2,6 @@ import { lens } from 'lens.ts';
 import keyBy from 'lodash/keyBy';
 import { createSelector } from 'reselect';
 
-import createStateContext from 'lib/createStateContext';
-import getLocalStorageMiddleware from 'lib/getLocalStorageMiddleware';
 import * as dictionary from 'state/dictionary';
 import { getSlots } from 'state/shape';
 import * as viewer from 'state/viewer';
@@ -14,7 +12,7 @@ export interface RootState {
   editor: viewer.ViewerState;
 }
 
-const defaultValue: RootState = {
+export const defaultValue: RootState = {
   dictionary: dictionary.defaultValue,
   editor: viewer.defaultValue,
 };
@@ -24,12 +22,6 @@ export const editorLens = l.k('editor');
 export const editorBoardLens = editorLens.k('board');
 export const editorShapeLens = editorLens.k('shape');
 export const dictionaryLens = l.k('dictionary');
-
-const middlewares = [
-  getLocalStorageMiddleware('cross', { 'editor': editorLens }),
-];
-const { StateProvider, StateContext } = createStateContext(defaultValue, middlewares);
-export { StateProvider, StateContext };
 
 export const getFittingWordsGetters = createSelector(
   (state: RootState) => getSlots(state.editor.shape),

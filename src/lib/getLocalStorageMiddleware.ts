@@ -2,7 +2,7 @@ import { LensImpl } from 'lens.ts';
 import reduce from 'lodash/reduce';
 
 import Dictionary from 'definitions/Dictionary';
-import { Middleware } from 'lib/createStateContext';
+import { Middleware } from 'lib/createStore';
 
 const getLocalStorageMiddleware = <T>(prefix: string, lenses: Dictionary<LensImpl<T, {}>>) => {
   const middleware: Middleware<T> = (state, prevState) => {

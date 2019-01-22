@@ -5,18 +5,20 @@ import { BOARD_WIDTH } from 'config/global';
 import { ContainerProps } from 'containers/definitions/Containers';
 import * as Types from 'lib/crossword/Types';
 import { setCursor, toggleDirection } from 'state/board';
-import { editorBoardLens, StateContext } from 'state/root';
+import { editorBoardLens } from 'state/root';
 import { getCellToClueMap } from 'state/shape';
 import { getSlotAtCursor } from 'state/viewer';
 import { includes, times } from 'util/arrays';
+import { StoreContext } from 'react-store';
+import { compose } from 'lib/createStore';
 
 class CellsContainer extends React.Component<ContainerProps> {
 
-  static contextType = StateContext;
-  context!: React.ContextType<typeof StateContext>;
+  static contextType = StoreContext;
+  context!: React.ContextType<typeof StoreContext>;
 
   renderCell(cell: number, cellToClueMap: { [cell: number]: number; }, highlightedSlot?: Types.Slot) {
-    const { board, shape } = this.context.state.editor;
+    const { board, shape } = this.context.getState().editor;
     const cellSize = BOARD_WIDTH / shape.width;
     const x = (cell % shape.width) * cellSize;
     const y = Math.floor(cell / shape.width) * cellSize;
@@ -25,10 +27,13 @@ class CellsContainer extends React.Component<ContainerProps> {
       <g
         key={cell}
         onClick={() => {
-          setCursor(cell)(this.context, editorBoardLens);
+          const setters = [];
           if (cell === board.cursor) {
-            toggleDirection()(this.context, editorBoardLens);
+            setters.push(toggleDirection()(editorBoardLens));
           }
+          this.context.update(
+            compose(setCursor(cell)(editorBoardLens), ...setters),
+          );
         }}
       >
         <rect
@@ -68,9 +73,9 @@ class CellsContainer extends React.Component<ContainerProps> {
   }
 
   render() {
-    const { shape } = this.context.state.editor;
+    const { shape } = this.context.getState().editor;
     const cellToClueMap = getCellToClueMap(shape);
-    const slotAtCursor = getSlotAtCursor(this.context.state.editor);
+    const slotAtCursor = getSlotAtCursor(this.context.getState().editor);
 
     return (
       <g data-group="cells">
