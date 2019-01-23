@@ -16,7 +16,7 @@ import iconTextRotateVertical from 'icons/iconTextRotateVertical';
 import iconTextRotationNone from 'icons/iconTextRotationNone';
 import iconUndo from 'icons/iconUndo';
 import * as Enums from 'lib/crossword/Enums';
-import { getLast, getNext } from 'lib/getHistoryMiddleware';
+import { getLast, getNext, redo, undo } from 'lib/getHistoryMiddleware';
 import { injectStore } from 'lib/react-store';
 import { toggleDirection } from 'state/board';
 import { editorBoardLens, editorLens } from 'state/root';
@@ -47,12 +47,7 @@ class EditorStructureContainer extends React.Component<ContainerProps> {
             <button
               className="btn d-block"
               disabled={!getLast(this.props.editorHistory)}
-              onClick={() => {
-                const previous = getLast(this.props.editorHistory);
-                if (previous) {
-                  this.props.update(editorLens.set(previous));
-                }
-              }}
+              onClick={() => this.props.update(undo(editorLens)(this.props.editorHistory))}
             >
               <Icon def={iconUndo} className="d-block" />
             </button>
@@ -61,12 +56,7 @@ class EditorStructureContainer extends React.Component<ContainerProps> {
             <button
               className="btn d-block"
               disabled={!getNext(this.props.editorHistory)}
-              onClick={() => {
-                const next = getNext(this.props.editorHistory);
-                if (next) {
-                  this.props.update(editorLens.set(next));
-                }
-              }}
+              onClick={() => this.props.update(redo(editorLens)(this.props.editorHistory))}
             >
               <Icon def={iconRedo} className="d-block" />
             </button>

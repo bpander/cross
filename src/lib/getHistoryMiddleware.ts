@@ -1,5 +1,5 @@
 import { Getter, LensImpl } from 'lens.ts';
-import { Middleware } from 'lib/createStore';
+import { Middleware, SetterCreator } from 'lib/createStore';
 
 export interface History<T> {
   past: T[];
@@ -52,4 +52,22 @@ export const getLast = <U>(history: History<U>): U | undefined => {
 
 export const getNext = <U>(history: History<U>): U | undefined => {
   return history.future[0];
+};
+
+const identity = <T>(x: T): T => x;
+
+export const undo: SetterCreator<{}> = l => <U>(history: History<U>) => {
+  const last = getLast(history);
+  if (!last) {
+    return l.set(identity);
+  }
+  return l.set(last);
+};
+
+export const redo: SetterCreator<{}> = l => <U>(history: History<U>) => {
+  const next = getNext(history);
+  if (!next) {
+    return l.set(identity);
+  }
+  return l.set(next);
 };
