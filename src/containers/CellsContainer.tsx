@@ -3,7 +3,6 @@ import React from 'react';
 
 import { BOARD_WIDTH } from 'config/global';
 import { ContainerProps, mapStoreToContainerProps } from 'containers/container';
-import { compose } from 'lib/createStore';
 import * as Types from 'lib/crossword/Types';
 import { injectStore } from 'lib/react-store';
 import { setCursor, toggleDirection } from 'state/board';
@@ -24,14 +23,10 @@ class CellsContainer extends React.Component<ContainerProps> {
       <g
         key={cell}
         onClick={() => {
-          const setters = [];
-          if (cell === board.cursor) {
-            setters.push(toggleDirection(editorBoardLens)());
-          }
-          // TODO: Figure out how to "batch" updates with Promise<Setter<T>>
-          this.props.update(
-            compose(setCursor(editorBoardLens)(cell) as any, ...setters as any[]),
-          );
+          const setter = (cell === board.cursor)
+            ? toggleDirection(editorBoardLens)()
+            : setCursor(editorBoardLens)(cell);
+          this.props.update(setter);
         }}
       >
         <rect
