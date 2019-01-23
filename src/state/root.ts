@@ -17,7 +17,7 @@ export interface RootState {
 export const defaultValue: RootState = {
   dictionary: dictionary.defaultValue,
   editor: viewer.defaultValue,
-  editorHistory: { past: [], future: [] },
+  editorHistory: { past: [], lastSavedState: viewer.defaultValue, future: [] },
 };
 
 const l = lens<RootState>();

@@ -3,6 +3,7 @@ import { Middleware, SetterCreator } from 'lib/createStore';
 
 export interface History<T> {
   past: T[];
+  lastSavedState: T;
   future: T[];
 }
 
@@ -16,27 +17,26 @@ const getHistoryMiddleware = <T, U>(l: LensImpl<T, U>, hl: LensImpl<T, History<U
     if (previous === current) {
       return state;
     }
-    const { past, future } = hl.get()(state);
-    const indexInPast = past.indexOf(current);
-    if (indexInPast > -1) {
+    const history = hl.get()(state);
+    if (getLast(history) === current) {
       return hl.set(() => {
-        const newPast = past.slice(0, indexInPast);
-        const newFuture = [ ...past.slice(indexInPast + 1), previous, ...future ];
-        return { past: newPast, future: newFuture };
+        const newPast = history.past.slice(0, -1);
+        console.log(history.past);
+        const newFuture = [ history.lastSavedState, ...history.future ];
+        return { past: newPast, future: newFuture, lastSavedState: current };
       })(state);
     }
-    const indexInFuture = future.indexOf(current);
-    if (indexInFuture > -1) {
+    if (getNext(history) === current) {
       return hl.set(() => {
-        const newPast = [ ...past, previous, ...future.slice(0, indexInFuture) ];
-        const newFuture = future.slice(indexInFuture + 1);
-        return { past: newPast, future: newFuture };
+        const newPast = [ ...history.past, history.lastSavedState ];
+        const newFuture = history.future.slice(1);
+        return { past: newPast, future: newFuture, lastSavedState: current };
       })(state);
     }
     if (triggers.some(t => t(state) !== t(prevState))) {
       return hl.set(() => {
-        const newPast = [ ...past, previous ];
-        return { past: newPast, future: [] };
+        const newPast = [ ...history.past, previous ];
+        return { past: newPast, future: [], lastSavedState: current };
       })(state);
     }
 
