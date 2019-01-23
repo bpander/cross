@@ -2,6 +2,7 @@ import { lens } from 'lens.ts';
 import keyBy from 'lodash/keyBy';
 import { createSelector } from 'reselect';
 
+import { History } from 'lib/getHistoryMiddleware';
 import * as dictionary from 'state/dictionary';
 import { getSlots } from 'state/shape';
 import * as viewer from 'state/viewer';
@@ -10,17 +11,20 @@ import { mapValues } from 'util/objects';
 export interface RootState {
   dictionary: dictionary.DictionaryState;
   editor: viewer.ViewerState;
+  editorHistory: History<viewer.ViewerState>;
 }
 
 export const defaultValue: RootState = {
   dictionary: dictionary.defaultValue,
   editor: viewer.defaultValue,
+  editorHistory: { past: [], future: [] },
 };
 
 const l = lens<RootState>();
 export const editorLens = l.k('editor');
 export const editorBoardLens = editorLens.k('board');
 export const editorShapeLens = editorLens.k('shape');
+export const editorHistoryLens = l.k('editorHistory');
 export const dictionaryLens = l.k('dictionary');
 
 export const getFittingWordsGetters = createSelector(

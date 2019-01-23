@@ -31,15 +31,15 @@ export interface Store<T> {
   subscribe: (listener: (newState: T) => void) => Unsubscribe;
 }
 
-const createStore = <T>(initialState: T, middleware: Middleware<T>): Store<T> => {
-  let state: T = middleware(initialState);
+const createStore = <T>(initialState: T, ...middleware: Middleware<T>[]): Store<T> => {
+  let state: T = middleware.reduce((s, m) => m(s), initialState);
   const listeners: Listener<T>[] = [];
 
   const getState = () => state;
   const update = async (setter: Setter<T>) => {
     const newState = setter(state);
     const prevState = state;
-    state = middleware(newState, prevState);
+    state = middleware.reduce((s, m) => m(s, prevState), newState);
     listeners.forEach(listener => listener(state));
   };
   const subscribe = (listener: Listener<T>): Unsubscribe => {
