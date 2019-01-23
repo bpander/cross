@@ -4,9 +4,14 @@ export interface Middleware<T> {
   (state: T, prevState?: T): T;
 }
 
-export interface Updater<U> {
+export interface SetterCreator<U> {
   // tslint:disable-next-line no-any
-  <T>(l: LensImpl<T, U>): (...args: any[]) => Setter<T> | Promise<Setter<T>>;
+  <T>(l: LensImpl<T, U>): (...args: any[]) => Setter<T>;
+}
+
+export interface AsyncSetterCreator<U> {
+  // tslint:disable-next-line no-any
+  <T>(l: LensImpl<T, U>): (...args: any[]) => Promise<Setter<T>>;
 }
 
 export interface Listener<T> {
@@ -22,7 +27,7 @@ export const compose = <R>(fn1: (a: R) => R, ...fns: Array<(a: R) => R>) =>
 
 export interface Store<T> {
   getState: () => T;
-  update: (setter: Setter<T> | Promise<Setter<T>>) => void;
+  update: (setter: Setter<T>) => void;
   subscribe: (listener: (newState: T) => void) => Unsubscribe;
 }
 
@@ -31,8 +36,7 @@ const createStore = <T>(initialState: T, middleware: Middleware<T>): Store<T> =>
   const listeners: Listener<T>[] = [];
 
   const getState = () => state;
-  const update = async (setterWrapper: Setter<T> | Promise<Setter<T>>) => {
-    const setter = await setterWrapper;
+  const update = async (setter: Setter<T>) => {
     const newState = setter(state);
     const prevState = state;
     state = middleware(newState, prevState);

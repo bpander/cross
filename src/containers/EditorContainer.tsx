@@ -52,7 +52,7 @@ class EditorContainer extends React.Component<EditorProps, EditorContainerState>
 
   async componentDidMount() {
     window.addEventListener('keydown', this.onKeyDown);
-    this.props.update(fetchWordList(dictionaryLens)());
+    this.props.update(await fetchWordList(dictionaryLens)());
   }
 
   componentWillUnmount() {

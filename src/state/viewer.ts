@@ -3,7 +3,7 @@ import uniq from 'lodash/uniq';
 import { createSelector } from 'reselect';
 
 import { BLACK_SYMBOL } from 'config/global';
-import { Updater } from 'lib/createStore';
+import { SetterCreator } from 'lib/createStore';
 import * as Enums from 'lib/crossword/Enums';
 import { ClosedSet } from 'lib/crossword/Types';
 import * as Board from 'state/board';
@@ -22,7 +22,7 @@ export const defaultValue: ViewerState = {
 };
 
 // TODO: Split this up
-export const setValueAtCursor: Updater<ViewerState> = l => (value: string) => {
+export const setValueAtCursor: SetterCreator<ViewerState> = l => (value: string) => {
   return l.set(editor => {
     const { board, shape } = editor;
     if (value === BLACK_SYMBOL) {
