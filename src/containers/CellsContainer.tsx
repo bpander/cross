@@ -2,10 +2,10 @@ import classNames from 'classnames';
 import React from 'react';
 
 import { BOARD_WIDTH } from 'config/global';
-import { ContainerProps } from 'containers/definitions/Containers';
+import { ContainerProps, mapStoreToContainerProps } from 'containers/container';
 import { compose } from 'lib/createStore';
 import * as Types from 'lib/crossword/Types';
-import { StoreContext } from 'react-store';
+import { injectStore } from 'lib/react-store';
 import { setCursor, toggleDirection } from 'state/board';
 import { editorBoardLens } from 'state/root';
 import { getCellToClueMap } from 'state/shape';
@@ -14,11 +14,8 @@ import { includes, times } from 'util/arrays';
 
 class CellsContainer extends React.Component<ContainerProps> {
 
-  static contextType = StoreContext;
-  context!: React.ContextType<typeof StoreContext>;
-
   renderCell(cell: number, cellToClueMap: { [cell: number]: number; }, highlightedSlot?: Types.Slot) {
-    const { board, shape } = this.context.getState().editor;
+    const { board, shape } = this.props.editor;
     const cellSize = BOARD_WIDTH / shape.width;
     const x = (cell % shape.width) * cellSize;
     const y = Math.floor(cell / shape.width) * cellSize;
@@ -32,7 +29,7 @@ class CellsContainer extends React.Component<ContainerProps> {
             setters.push(toggleDirection(editorBoardLens)());
           }
           // TODO: Figure out how to "batch" updates with Promise<Setter<T>>
-          this.context.update(
+          this.props.update(
             compose(setCursor(editorBoardLens)(cell) as any, ...setters as any[]),
           );
         }}
@@ -74,9 +71,9 @@ class CellsContainer extends React.Component<ContainerProps> {
   }
 
   render() {
-    const { shape } = this.context.getState().editor;
+    const { shape } = this.props.editor;
     const cellToClueMap = getCellToClueMap(shape);
-    const slotAtCursor = getSlotAtCursor(this.context.getState().editor);
+    const slotAtCursor = getSlotAtCursor(this.props.editor);
 
     return (
       <g data-group="cells">
@@ -86,4 +83,4 @@ class CellsContainer extends React.Component<ContainerProps> {
   }
 }
 
-export default CellsContainer;
+export default injectStore(mapStoreToContainerProps)(CellsContainer);

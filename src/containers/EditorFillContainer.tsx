@@ -3,18 +3,15 @@
 import React from 'react';
 import { createSelector } from 'reselect';
 
-import { ContainerProps } from 'containers/definitions/Containers';
 import { Constraints } from 'lib/crossword/Types';
+import { injectStore } from 'lib/react-store';
 import ThreadPool, { Thread } from 'lib/ThreadPool';
-import { StoreContext } from 'react-store';
 import { getFittingWords, getFittingWordsGetters, RootState } from 'state/root';
 import { getSlots } from 'state/shape';
 import { getClosedSet, getSlotAtCursor } from 'state/viewer';
+import { ContainerProps, mapStoreToContainerProps } from './container';
 
 class EditorFillContainer extends React.Component<ContainerProps> {
-
-  static contextType = StoreContext;
-  context!: React.ContextType<typeof StoreContext>;
 
   threadPool: ThreadPool<string>;
 
@@ -63,7 +60,7 @@ class EditorFillContainer extends React.Component<ContainerProps> {
   }
 
   componentDidUpdate() {
-    setTimeout(() => this.evaluateCandidates(this.context.getState()), 0);
+    setTimeout(() => this.evaluateCandidates(this.props), 0);
   }
 
   componentWillUnmount() {
@@ -73,7 +70,7 @@ class EditorFillContainer extends React.Component<ContainerProps> {
   onThreadCreated = (thread: Thread<string>) => {
     thread.worker.postMessage({
       type: 'prepare',
-      payload: this.getConstraints(this.context.getState()),
+      payload: this.getConstraints(this.props),
     });
   };
 
@@ -100,4 +97,4 @@ class EditorFillContainer extends React.Component<ContainerProps> {
   }
 }
 
-export default EditorFillContainer;
+export default injectStore(mapStoreToContainerProps)(EditorFillContainer);

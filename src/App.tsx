@@ -2,18 +2,24 @@ import React from 'react';
 import { Route } from 'react-router';
 
 import EditorContainer from 'containers/EditorContainer';
-import { store, StoreContext } from 'react-store';
+import createStore, { compose } from 'lib/createStore';
+import getLocalStorageMiddleware from 'lib/getLocalStorageMiddleware';
+import { Provider } from 'lib/react-store';
+import { defaultValue, editorBoardLens, editorShapeLens } from 'state/root';
+
+const store = createStore(
+  defaultValue,
+  compose(
+    getLocalStorageMiddleware('cross', { 'board': editorBoardLens, 'shape': editorShapeLens }),
+  ),
+);
 
 class App extends React.Component {
-  componentDidMount() {
-    store.subscribe(() => this.forceUpdate());
-  }
   render() {
-    console.log('render', store.getState());
     return (
-      <StoreContext.Provider value={store}>
+      <Provider store={store}>
         <Route component={EditorContainer} />
-      </StoreContext.Provider>
+      </Provider>
     );
   }
 }

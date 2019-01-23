@@ -5,7 +5,7 @@ import React from 'react';
 
 import classNames from 'classnames';
 import { BLACK_SYMBOL } from 'config/global';
-import { ContainerProps } from 'containers/definitions/Containers';
+import { ContainerProps, mapStoreToContainerProps } from 'containers/container';
 import Icon from 'icons/Icon';
 import iconChecker from 'icons/iconChecker';
 import iconCircle from 'icons/iconCircle';
@@ -16,7 +16,7 @@ import iconTextRotateVertical from 'icons/iconTextRotateVertical';
 import iconTextRotationNone from 'icons/iconTextRotationNone';
 import iconUndo from 'icons/iconUndo';
 import * as Enums from 'lib/crossword/Enums';
-import { StoreContext } from 'react-store';
+import { injectStore } from 'lib/react-store';
 import { toggleDirection } from 'state/board';
 import { editorBoardLens, editorLens } from 'state/root';
 import { getWordCounts } from 'state/shape';
@@ -25,19 +25,16 @@ import { includes } from 'util/arrays';
 
 class EditorStructureContainer extends React.Component<ContainerProps> {
 
-  static contextType = StoreContext;
-  context!: React.ContextType<typeof StoreContext>;
-
   onToggleBlackClick: React.MouseEventHandler<HTMLButtonElement> = () => {
-    this.context.update(setValueAtCursor(editorLens)(BLACK_SYMBOL));
+    this.props.update(setValueAtCursor(editorLens)(BLACK_SYMBOL));
   };
 
   onToggleDirectionClick: React.MouseEventHandler<HTMLButtonElement> = () => {
-    this.context.update(toggleDirection(editorBoardLens)());
+    this.props.update(toggleDirection(editorBoardLens)());
   };
 
   renderToolbar() {
-    const { board, shape } = this.context.getState().editor;
+    const { board, shape } = this.props.editor;
     const directionIconDef = (board.direction === Enums.Direction.Across)
       ? iconTextRotationNone
       : iconTextRotateVertical;
@@ -93,7 +90,7 @@ class EditorStructureContainer extends React.Component<ContainerProps> {
     );
   }
   render() {
-    const { shape } = this.context.getState().editor;
+    const { shape } = this.props.editor;
     const wordCounts = getWordCounts(shape);
     const maxGroupLength = maxBy(values(wordCounts), cellGroups => cellGroups.length)!.length;
     return (
@@ -120,4 +117,4 @@ class EditorStructureContainer extends React.Component<ContainerProps> {
   }
 }
 
-export default EditorStructureContainer;
+export default injectStore(mapStoreToContainerProps)(EditorStructureContainer);

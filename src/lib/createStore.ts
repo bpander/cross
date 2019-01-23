@@ -13,7 +13,7 @@ export interface Listener<T> {
   (newState: T): void;
 }
 
-export interface Unlistener {
+export interface Unsubscribe {
   (): void;
 }
 
@@ -23,7 +23,7 @@ export const compose = <R>(fn1: (a: R) => R, ...fns: Array<(a: R) => R>) =>
 export interface Store<T> {
   getState: () => T;
   update: (setter: Setter<T> | Promise<Setter<T>>) => void;
-  subscribe: (listener: (newState: T) => void) => Unlistener;
+  subscribe: (listener: (newState: T) => void) => Unsubscribe;
 }
 
 const createStore = <T>(initialState: T, middleware: Middleware<T>): Store<T> => {
@@ -38,7 +38,7 @@ const createStore = <T>(initialState: T, middleware: Middleware<T>): Store<T> =>
     state = middleware(newState, prevState);
     listeners.forEach(listener => listener(state));
   };
-  const subscribe = (listener: Listener<T>): Unlistener => {
+  const subscribe = (listener: Listener<T>): Unsubscribe => {
     listeners.push(listener);
     return () => {
       const index = listeners.indexOf(listener);
