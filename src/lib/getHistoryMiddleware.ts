@@ -19,16 +19,25 @@ const getHistoryMiddleware = <T, U>(l: LensImpl<T, U>, hl: LensImpl<T, History<U
     const { past, future } = hl.get()(state);
     const indexInPast = past.indexOf(current);
     if (indexInPast > -1) {
-      // TODO: user UNdid
-      return state;
+      return hl.set(() => {
+        const newPast = past.slice(0, indexInPast);
+        const newFuture = [ ...past.slice(indexInPast + 1), previous, ...future ];
+        return { past: newPast, future: newFuture };
+      })(state);
     }
     const indexInFuture = future.indexOf(current);
     if (indexInFuture > -1) {
-      // TODO: user REdid
-      return state;
+      return hl.set(() => {
+        const newPast = [ ...past, previous, ...future.slice(0, indexInFuture) ];
+        const newFuture = future.slice(indexInFuture + 1);
+        return { past: newPast, future: newFuture };
+      })(state);
     }
     if (triggers.some(t => t(state) !== t(prevState))) {
-      return hl.k('past').set(pastState => [ ...pastState, previous ])(state);
+      return hl.set(() => {
+        const newPast = [ ...past, previous ];
+        return { past: newPast, future: [] };
+      })(state);
     }
 
     return state;
@@ -36,3 +45,11 @@ const getHistoryMiddleware = <T, U>(l: LensImpl<T, U>, hl: LensImpl<T, History<U
 };
 
 export default getHistoryMiddleware;
+
+export const getLast = <U>(history: History<U>): U | undefined => {
+  return history.past[history.past.length - 1];
+};
+
+export const getNext = <U>(history: History<U>): U | undefined => {
+  return history.future[0];
+};
