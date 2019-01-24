@@ -9,10 +9,11 @@ import CellsContainer from 'containers/CellsContainer';
 import { ContainerProps, mapStoreToContainerProps } from 'containers/container';
 import EditorFillContainer from 'containers/EditorFillContainer';
 import EditorStructureContainer from 'containers/EditorStructureContainer';
+import { clearHistory } from 'lib/getHistoryMiddleware';
 import { injectStore } from 'lib/react-store';
 import { setCursor, toggleDirection } from 'state/board';
 import { fetchWordList } from 'state/dictionary';
-import { dictionaryLens, editorBoardLens, editorLens } from 'state/root';
+import { dictionaryLens, editorBoardLens, editorHistoryLens, editorLens } from 'state/root';
 import { setValueAtCursor } from 'state/viewer';
 import { getIndex, getXY } from 'util/grid2Ds';
 
@@ -56,6 +57,7 @@ class EditorContainer extends React.Component<EditorProps, EditorContainerState>
   }
 
   componentWillUnmount() {
+    this.props.update(clearHistory(editorHistoryLens)());
     window.removeEventListener('keydown', this.onKeyDown);
   }
 
