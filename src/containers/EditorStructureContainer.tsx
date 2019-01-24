@@ -26,6 +26,10 @@ import { includes } from 'util/arrays';
 
 class EditorStructureContainer extends React.Component<ContainerProps> {
 
+  onUndoClick = () => this.props.update(undo(editorLens)(this.props.editorHistory));
+
+  onRedoClick = () => this.props.update(redo(editorLens)(this.props.editorHistory));
+
   onToggleBlackClick: React.MouseEventHandler<HTMLButtonElement> = () => {
     this.props.update(setValueAtCursor(editorLens)(BLACK_SYMBOL));
   };
@@ -47,7 +51,7 @@ class EditorStructureContainer extends React.Component<ContainerProps> {
             <button
               className="btn d-block"
               disabled={!getLast(this.props.editorHistory)}
-              onClick={() => this.props.update(undo(editorLens)(this.props.editorHistory))}
+              onClick={this.onUndoClick}
             >
               <Icon def={iconUndo} className="d-block" />
             </button>
@@ -56,7 +60,7 @@ class EditorStructureContainer extends React.Component<ContainerProps> {
             <button
               className="btn d-block"
               disabled={!getNext(this.props.editorHistory)}
-              onClick={() => this.props.update(redo(editorLens)(this.props.editorHistory))}
+              onClick={this.onRedoClick}
             >
               <Icon def={iconRedo} className="d-block" />
             </button>
