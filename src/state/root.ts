@@ -1,4 +1,4 @@
-import { lens } from 'lens.ts';
+import { lens } from 'lib/lens';
 import keyBy from 'lodash/keyBy';
 import { createSelector } from 'reselect';
 

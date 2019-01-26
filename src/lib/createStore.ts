@@ -1,4 +1,4 @@
-import { LensImpl, Setter } from 'lens.ts';
+import { LensImpl, Setter } from 'lib/lens';
 
 export interface Middleware<T> {
   (state: T, prevState?: T): T;

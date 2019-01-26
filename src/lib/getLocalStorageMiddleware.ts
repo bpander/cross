@@ -1,4 +1,4 @@
-import { LensImpl } from 'lens.ts';
+import { LensImpl } from 'lib/lens';
 import reduce from 'lodash/reduce';
 
 import Dictionary from 'definitions/Dictionary';

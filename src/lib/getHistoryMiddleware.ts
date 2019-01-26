@@ -1,4 +1,4 @@
-import { Getter, LensImpl } from 'lens.ts';
+import { Getter, LensImpl } from 'lib/lens';
 import { Middleware, SetterCreator } from 'lib/createStore';
 
 export interface UndoHistory<T> {

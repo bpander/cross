@@ -1,4 +1,4 @@
-import { lens } from 'lens.ts';
+import { lens } from 'lib/lens';
 import uniq from 'lodash/uniq';
 import { createSelector } from 'reselect';
 
