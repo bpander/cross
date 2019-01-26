@@ -51,22 +51,14 @@ const lensImpl = <T, U>(get: Getter<T, U>, setParent: SetParent<T, U>): Lens<T, 
   return { get, set, k };
 };
 
-// tslint:disable no-any
-function copy<T>(x: T): T {
+const copy = <T>(x: T): T => {
   if (Array.isArray(x)) {
-    return x.slice() as any;
+    return x.slice() as {} as T;
   } else if (x && typeof x === 'object') {
-    return Object.keys(x).reduce<any>(
-      (res, k) => {
-        res[k] = (x as any)[k];
-        return res;
-      },
-      {},
-    );
+    return { ...x };
   } else {
     return x;
   }
-}
-// tslint:enable no-any
+};
 
 export const lens = <T>(): Lens<T, T> => lensImpl(t => t, v => _ => v);
