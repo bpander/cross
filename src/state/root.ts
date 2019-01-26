@@ -3,7 +3,6 @@ import { createSelector } from 'reselect';
 
 import { emptyUndoHistory, UndoHistory } from 'lib/getHistoryMiddleware';
 import { lens } from 'lib/lens';
-import lensify from 'lib/lensify';
 import * as dictionary from 'state/dictionary';
 import { getSlots } from 'state/shape';
 import * as viewer from 'state/viewer';
@@ -22,13 +21,15 @@ export const defaultValue: RootState = {
 };
 
 const l = lens<RootState>();
+const editorL = l.k('editor');
 
 export const L = {
   dictionary: l.k('dictionary'),
-  editor: lensify(l.k('editor'), el => ({
-    board: el.k('board'),
-    shape: el.k('shape'),
-  })),
+  editor: {
+    ...editorL,
+    board: editorL.k('board'),
+    shape: editorL.k('shape'),
+  },
   editorHistory: l.k('editorHistory'),
 };
 

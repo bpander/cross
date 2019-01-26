@@ -15,6 +15,16 @@ interface SetParent<T, U> {
   (value: U): Setter<T>;
 }
 
+const copy = <T>(x: T): T => {
+  if (Array.isArray(x)) {
+    return x.slice() as {} as T;
+  } else if (x && typeof x === 'object') {
+    return { ...x };
+  } else {
+    return x;
+  }
+};
+
 const lensImpl = <T, U>(get: Getter<T, U>, setParent: SetParent<T, U>): Lens<T, U> => {
 
   const compose = <V>(other: Lens<U, V>): Lens<T, V> => {
@@ -49,16 +59,6 @@ const lensImpl = <T, U>(get: Getter<T, U>, setParent: SetParent<T, U>): Lens<T, 
   };
 
   return { get, set, k };
-};
-
-const copy = <T>(x: T): T => {
-  if (Array.isArray(x)) {
-    return x.slice() as {} as T;
-  } else if (x && typeof x === 'object') {
-    return { ...x };
-  } else {
-    return x;
-  }
 };
 
 export const lens = <T>(): Lens<T, T> => lensImpl(t => t, v => _ => v);
