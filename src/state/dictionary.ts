@@ -2,7 +2,7 @@ import groupBy from 'lodash/groupBy';
 import { createSelector } from 'reselect';
 
 import dictPath from 'data/default.dict';
-import { AsyncSetterCreator } from 'lib/createStore';
+import { Setter } from 'lib/lens';
 import { parser } from 'parsers/dict.parser';
 
 export interface DictionaryState {
@@ -13,11 +13,11 @@ export const defaultValue: DictionaryState = {
   wordList: [],
 };
 
-export const fetchWordList: AsyncSetterCreator<DictionaryState> = l => async () => {
+export const fetchWordList = async (): Promise<Setter<DictionaryState>> => {
   const dictResponse = await fetch(dictPath);
   const dictContents = await dictResponse.text();
   const dictResult = parser(dictContents);
-  return l.k('wordList').set(dictResult.data);
+  return state => ({ ...state, wordList: dictResult.data });
 };
 
 export const getWordsGrouped = createSelector(

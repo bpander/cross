@@ -19,23 +19,23 @@ import * as Enums from 'lib/crossword/Enums';
 import { getLast, getNext, redo, undo } from 'lib/getHistoryMiddleware';
 import { injectStore } from 'lib/react-store';
 import { toggleDirection } from 'state/board';
-import { editorBoardLens, editorLens } from 'state/root';
+import { L } from 'state/root';
 import { getWordCounts } from 'state/shape';
 import { setValueAtCursor } from 'state/viewer';
 import { includes } from 'util/arrays';
 
 class EditorStructureContainer extends React.Component<ContainerProps> {
 
-  onUndoClick = () => this.props.update(undo(editorLens)(this.props.editorHistory));
+  onUndoClick = () => this.props.update(L.editor.set(undo(this.props.editorHistory)));
 
-  onRedoClick = () => this.props.update(redo(editorLens)(this.props.editorHistory));
+  onRedoClick = () => this.props.update(L.editor.set(redo(this.props.editorHistory)));
 
   onToggleBlackClick: React.MouseEventHandler<HTMLButtonElement> = () => {
-    this.props.update(setValueAtCursor(editorLens)(BLACK_SYMBOL));
+    this.props.update(L.editor.set(setValueAtCursor(BLACK_SYMBOL)));
   };
 
   onToggleDirectionClick: React.MouseEventHandler<HTMLButtonElement> = () => {
-    this.props.update(toggleDirection(editorBoardLens)());
+    this.props.update(L.editor.board.set(toggleDirection));
   };
 
   renderToolbar() {

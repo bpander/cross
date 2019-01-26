@@ -7,17 +7,17 @@ import createStore from 'lib/createStore';
 import getHistoryMiddleware from 'lib/getHistoryMiddleware';
 import getLocalStorageMiddleware from 'lib/getLocalStorageMiddleware';
 import { Provider } from 'lib/react-store';
-import { defaultValue, editorBoardLens, editorHistoryLens, editorLens, editorShapeLens } from 'state/root';
+import { defaultValue, L } from 'state/root';
 
 const history = createBrowserHistory();
 
 const store = createStore(
   defaultValue,
-  getLocalStorageMiddleware('cross', { 'board': editorBoardLens, 'shape': editorShapeLens }),
+  getLocalStorageMiddleware('cross', { 'board': L.editor.board, 'shape': L.editor.shape }),
   getHistoryMiddleware(
-    editorLens.get(),
-    editorHistoryLens,
-    [ editorBoardLens.k('letters').get(), editorShapeLens.k('blocks').get() ],
+    L.editor.get(),
+    L.editorHistory,
+    [ L.editor.board.k('letters').get(), L.editor.shape.k('blocks').get() ],
     200,
   ),
 );

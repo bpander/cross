@@ -1,11 +1,10 @@
-import { lens } from 'lib/lens';
 import uniq from 'lodash/uniq';
 import { createSelector } from 'reselect';
 
 import { BLACK_SYMBOL } from 'config/global';
-import { SetterCreator } from 'lib/createStore';
 import * as Enums from 'lib/crossword/Enums';
 import { ClosedSet } from 'lib/crossword/Types';
+import { lens, Setter } from 'lib/lens';
 import * as Board from 'state/board';
 import * as Shape from 'state/shape';
 import { includes, removeFirst, removeIndex, replaceIndex } from 'util/arrays';
@@ -22,8 +21,8 @@ export const defaultValue: ViewerState = {
 };
 
 // TODO: Split this up
-export const setValueAtCursor: SetterCreator<ViewerState> = l => (value: string) => {
-  return l.set(editor => {
+export const setValueAtCursor = (value: string): Setter<ViewerState> => {
+  return editor => {
     const { board, shape } = editor;
     if (value === BLACK_SYMBOL) {
       const blockIndex = shape.blocks.indexOf(board.cursor);
@@ -51,7 +50,7 @@ export const setValueAtCursor: SetterCreator<ViewerState> = l => (value: string)
       letters: replaceIndex(state.letters, state.cursor, value),
       cursor: state.cursor + (cursorDirection * stepSize),
     }))(editor);
-  });
+  };
 };
 
 export const getSlotAtCursor = createSelector(

@@ -6,7 +6,7 @@ import { ContainerProps, mapStoreToContainerProps } from 'containers/container';
 import * as Types from 'lib/crossword/Types';
 import { injectStore } from 'lib/react-store';
 import { setCursor, toggleDirection } from 'state/board';
-import { editorBoardLens } from 'state/root';
+import { L } from 'state/root';
 import { getCellToClueMap } from 'state/shape';
 import { getSlotAtCursor } from 'state/viewer';
 import { includes, times } from 'util/arrays';
@@ -24,8 +24,8 @@ class CellsContainer extends React.Component<ContainerProps> {
         key={cell}
         onClick={() => {
           const setter = (cell === board.cursor)
-            ? toggleDirection(editorBoardLens)()
-            : setCursor(editorBoardLens)(cell);
+            ? L.editor.board.set(toggleDirection)
+            : L.editor.board.set(setCursor(cell));
           this.props.update(setter);
         }}
       >

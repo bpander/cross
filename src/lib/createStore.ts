@@ -1,17 +1,7 @@
-import { LensImpl, Setter } from 'lib/lens';
+import { Setter } from 'lib/lens';
 
 export interface Middleware<T> {
   (state: T, prevState?: T): T;
-}
-
-export interface SetterCreator<U> {
-  // tslint:disable-next-line no-any
-  <T>(l: LensImpl<T, U>): (...args: any[]) => Setter<T>;
-}
-
-export interface AsyncSetterCreator<U> {
-  // tslint:disable-next-line no-any
-  <T>(l: LensImpl<T, U>): (...args: any[]) => Promise<Setter<T>>;
 }
 
 export interface Listener<T> {

@@ -1,10 +1,11 @@
-import { LensImpl } from 'lib/lens';
 import reduce from 'lodash/reduce';
 
 import Dictionary from 'definitions/Dictionary';
 import { Middleware } from 'lib/createStore';
+import { LensImpl } from 'lib/lens';
 
-const getLocalStorageMiddleware = <T>(prefix: string, lenses: Dictionary<LensImpl<T, {}>>) => {
+// tslint:disable-next-line no-any
+const getLocalStorageMiddleware = <T>(prefix: string, lenses: Dictionary<LensImpl<T, any>>) => {
   const middleware: Middleware<T> = (state, prevState) => {
     return reduce(
       lenses,

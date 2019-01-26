@@ -1,6 +1,6 @@
 import Dictionary from 'definitions/Dictionary';
-import { SetterCreator } from 'lib/createStore';
 import * as Enums from 'lib/crossword/Enums';
+import { Setter } from 'lib/lens';
 
 export interface BoardState {
   letters: string[];
@@ -19,10 +19,10 @@ const flipMap: Dictionary<Enums.Direction> = {
   [Enums.Direction.Down]: Enums.Direction.Across,
 };
 
-export const toggleDirection: SetterCreator<BoardState> = l => () => {
-  return l.k('direction').set(direction => flipMap[direction]);
+export const toggleDirection: Setter<BoardState> = state => {
+  return { ...state, direction: flipMap[state.direction] };
 };
 
-export const setCursor: SetterCreator<BoardState> = l => (cursor: number) => {
-  return l.k('cursor').set(cursor);
+export const setCursor = (cursor: number): Setter<BoardState> => state => {
+  return { ...state, cursor };
 };

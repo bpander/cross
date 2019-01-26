@@ -3,7 +3,7 @@ export type Lens<T, U> = LensImpl<T, U>;
 export class LensImpl<T, U> {
   constructor(
     private _get: Getter<T, U>,
-    private _set: (value: U) => Setter<T>
+    private _set: (value: U) => Setter<T>,
   ) {
   }
 
@@ -17,7 +17,7 @@ export class LensImpl<T, U> {
         const copied = copy(t);
         copied[key] = v;
         return copied;
-      }
+      },
     ));
   }
 
@@ -55,18 +55,23 @@ export class LensImpl<T, U> {
 export type Getter<T, V> = (target: T) => V;
 export type Setter<T>    = (target: T) => T;
 
+// tslint:disable no-any
 function copy<T>(x: T): T {
   if (Array.isArray(x)) {
     return x.slice() as any;
   } else if (x && typeof x === 'object') {
-    return Object.keys(x).reduce<any>((res, k) => {
-      res[k] = (x as any)[k];
-      return res;
-    }, {});
+    return Object.keys(x).reduce<any>(
+      (res, k) => {
+        res[k] = (x as any)[k];
+        return res;
+      },
+      {},
+    );
   } else {
     return x;
   }
 }
+// tslint:enable no-any
 
 export function lens<T>(): Lens<T, T>;
 export function lens<T, U>(_get: Getter<T, U>, _set: (value: U) => Setter<T>): Lens<T, U>;

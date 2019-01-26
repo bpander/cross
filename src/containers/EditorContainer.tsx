@@ -9,11 +9,11 @@ import CellsContainer from 'containers/CellsContainer';
 import { ContainerProps, mapStoreToContainerProps } from 'containers/container';
 import EditorFillContainer from 'containers/EditorFillContainer';
 import EditorStructureContainer from 'containers/EditorStructureContainer';
-import { clearHistory } from 'lib/getHistoryMiddleware';
+import { emptyUndoHistory } from 'lib/getHistoryMiddleware';
 import { injectStore } from 'lib/react-store';
 import { setCursor, toggleDirection } from 'state/board';
 import { fetchWordList } from 'state/dictionary';
-import { dictionaryLens, editorBoardLens, editorHistoryLens, editorLens } from 'state/root';
+import { L } from 'state/root';
 import { setValueAtCursor } from 'state/viewer';
 import { getIndex, getXY } from 'util/grid2Ds';
 
@@ -53,11 +53,11 @@ class EditorContainer extends React.Component<EditorProps, EditorContainerState>
 
   async componentDidMount() {
     window.addEventListener('keydown', this.onKeyDown);
-    this.props.update(await fetchWordList(dictionaryLens)());
+    this.props.update(L.dictionary.set(await fetchWordList()));
   }
 
   componentWillUnmount() {
-    this.props.update(clearHistory(editorHistoryLens)());
+    this.props.update(L.editorHistory.set(emptyUndoHistory));
     window.removeEventListener('keydown', this.onKeyDown);
   }
 
@@ -76,7 +76,7 @@ class EditorContainer extends React.Component<EditorProps, EditorContainerState>
         const min = getIndex(shape.width, [ x, 0 ]);
         const max = getIndex(shape.width, [ x, shape.width - 1 ]);
         const cursor = clamp(board.cursor + shape.width * directionMultiplier, min, max);
-        this.props.update(setCursor(editorBoardLens)(cursor));
+        this.props.update(L.editor.board.set(setCursor(cursor)));
         break;
       }
 
@@ -89,15 +89,15 @@ class EditorContainer extends React.Component<EditorProps, EditorContainerState>
         const min = getIndex(shape.width, [ 0, y ]);
         const max = getIndex(shape.width, [ shape.width - 1, y ]);
         const cursor = clamp(board.cursor + directionMultiplier, min, max);
-        this.props.update(setCursor(editorBoardLens)(cursor));
+        this.props.update(L.editor.board.set(setCursor(cursor)));
         break;
       }
 
-      case 'Enter': return this.props.update(toggleDirection(editorBoardLens)());
-      case 'Backspace': return this.props.update(setValueAtCursor(editorLens)(''));
+      case 'Enter': return this.props.update(L.editor.board.set(toggleDirection));
+      case 'Backspace': return this.props.update(L.editor.set(setValueAtCursor('')));
       default:
         if (e.key.match(/^[a-z]$/i) || e.key === BLACK_SYMBOL) {
-          this.props.update(setValueAtCursor(editorLens)(e.key.toUpperCase()));
+          this.props.update(L.editor.set(setValueAtCursor(e.key.toUpperCase())));
         }
     }
   };

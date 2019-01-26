@@ -1,8 +1,9 @@
-import { lens } from 'lib/lens';
 import keyBy from 'lodash/keyBy';
 import { createSelector } from 'reselect';
 
 import { emptyUndoHistory, UndoHistory } from 'lib/getHistoryMiddleware';
+import { lens } from 'lib/lens';
+import lensify from 'lib/lensify';
 import * as dictionary from 'state/dictionary';
 import { getSlots } from 'state/shape';
 import * as viewer from 'state/viewer';
@@ -21,11 +22,15 @@ export const defaultValue: RootState = {
 };
 
 const l = lens<RootState>();
-export const editorLens = l.k('editor');
-export const editorBoardLens = editorLens.k('board');
-export const editorShapeLens = editorLens.k('shape');
-export const editorHistoryLens = l.k('editorHistory');
-export const dictionaryLens = l.k('dictionary');
+
+export const L = {
+  dictionary: l.k('dictionary'),
+  editor: lensify(l.k('editor'), el => ({
+    board: el.k('board'),
+    shape: el.k('shape'),
+  })),
+  editorHistory: l.k('editorHistory'),
+};
 
 export const getFittingWordsGetters = createSelector(
   (state: RootState) => getSlots(state.editor.shape),

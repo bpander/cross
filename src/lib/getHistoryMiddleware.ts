@@ -1,5 +1,5 @@
-import { Getter, LensImpl } from 'lib/lens';
-import { Middleware, SetterCreator } from 'lib/createStore';
+import { Middleware } from 'lib/createStore';
+import { Getter, LensImpl, Setter } from 'lib/lens';
 
 export interface UndoHistory<T> {
   past: T[];
@@ -80,22 +80,18 @@ const getHistoryMiddleware: GetHistoryMiddleware = (get, hl, triggers, limit) =>
 
 export default getHistoryMiddleware;
 
-export const undo: SetterCreator<{}> = l => <U>(history: UndoHistory<U>) => {
+export const undo = <U>(history: UndoHistory<U>): Setter<U> => {
   const last = getLast(history);
   if (!last) {
-    return l.set(identity);
+    return identity;
   }
-  return l.set(last);
+  return () => last;
 };
 
-export const redo: SetterCreator<{}> = l => <U>(history: UndoHistory<U>) => {
+export const redo = <U>(history: UndoHistory<U>): Setter<U> => {
   const next = getNext(history);
   if (!next) {
-    return l.set(identity);
+    return identity;
   }
-  return l.set(next);
-};
-
-export const clearHistory: SetterCreator<UndoHistory<{}>> = hl => () => {
-  return hl.set(emptyUndoHistory);
+  return () => next;
 };
