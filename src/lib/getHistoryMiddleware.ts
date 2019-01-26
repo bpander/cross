@@ -1,5 +1,5 @@
 import { Middleware } from 'lib/createStore';
-import { Getter, LensImpl, Setter } from 'lib/lens';
+import { Getter, Lens, Setter } from 'lib/lens';
 
 export interface UndoHistory<T> {
   past: T[];
@@ -27,7 +27,7 @@ export const getNext = <U>(history: UndoHistory<U>): U | undefined => {
 interface GetHistoryMiddleware {
   <T, U>(
     get: Getter<T, U>,
-    hl: LensImpl<T, UndoHistory<U>>,
+    hl: Lens<T, UndoHistory<U>>,
     triggers: Getter<T, {}>[],
     limit: number,
   ): Middleware<T>;

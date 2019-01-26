@@ -15,9 +15,9 @@ const store = createStore(
   defaultValue,
   getLocalStorageMiddleware('cross', { 'board': L.editor.board, 'shape': L.editor.shape }),
   getHistoryMiddleware(
-    L.editor.get(),
+    L.editor.get,
     L.editorHistory,
-    [ L.editor.board.k('letters').get(), L.editor.shape.k('blocks').get() ],
+    [ L.editor.board.k('letters').get, L.editor.shape.k('blocks').get ],
     200,
   ),
 );

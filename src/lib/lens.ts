@@ -1,14 +1,33 @@
-export type Lens<T, U> = LensImpl<T, U>;
 
-export class LensImpl<T, U> {
-  constructor(
-    private _get: Getter<T, U>,
-    private _set: (value: U) => Setter<T>,
-  ) {
-  }
+export type Getter<T, V> = (target: T) => V;
+export type Setter<T>    = (target: T) => T;
 
-  public k<K extends keyof U>(key: K): Lens<T, U[K]> {
-    return this.compose(lens(
+export type Lens<T, U> = {
+  get: Getter<T, U>;
+  set: {
+    (value: U): Setter<T>;
+    (f: Setter<U>): Setter<T>;
+  };
+  k: { <K extends keyof U>(key: K): Lens<T, U[K]>; };
+};
+
+interface SetParent<T, U> {
+  (value: U): Setter<T>;
+}
+
+const lensImpl = <T, U>(get: Getter<T, U>, setParent: SetParent<T, U>): Lens<T, U> => {
+
+  const compose = <V>(other: Lens<U, V>): Lens<T, V> => {
+    return lensImpl(
+      t => other.get(get(t)),
+      v => t => {
+        return setParent(other.set(v)(get(t)))(t);
+      },
+    );
+  };
+
+  const k = <K extends keyof U>(key: K): Lens<T, U[K]> => {
+    return compose(lensImpl(
       t => t[key],
       v => t => {
         if (v === t[key]) {
@@ -19,41 +38,18 @@ export class LensImpl<T, U> {
         return copied;
       },
     ));
-  }
+  };
 
-  public compose<V>(other: Lens<U, V>): Lens<T, V> {
-    return lens(
-      t => other._get(this._get(t)),
-      v => t => {
-        return this._set(other._set(v)(this._get(t)))(t);
-      },
-    );
-  }
-
-  public get(): Getter<T, U>;
-  public get<V>(f: Getter<U, V>): Getter<T, V>;
-  public get() {
-    if (arguments.length) {
-      const f = arguments[0];
-      return (t: T) => f(this._get(t));
-    } else {
-      return this._get;
-    }
-  }
-
-  public set(value: U): Setter<T>;
-  public set(f: Setter<U>): Setter<T>;
-  public set(modifier: U | Setter<U>) {
+  const set = (modifier: U | Setter<U>) => {
     if (typeof modifier === 'function') {
-      return (t: T) => this._set((modifier as Setter<U>)(this._get(t)))(t);
+      return (t: T) => setParent((modifier as Setter<U>)(get(t)))(t);
     } else {
-      return this._set(modifier);
+      return setParent(modifier);
     }
-  }
-}
+  };
 
-export type Getter<T, V> = (target: T) => V;
-export type Setter<T>    = (target: T) => T;
+  return { get, set, k };
+};
 
 // tslint:disable no-any
 function copy<T>(x: T): T {
@@ -73,12 +69,4 @@ function copy<T>(x: T): T {
 }
 // tslint:enable no-any
 
-export function lens<T>(): Lens<T, T>;
-export function lens<T, U>(_get: Getter<T, U>, _set: (value: U) => Setter<T>): Lens<T, U>;
-export function lens() {
-  if (arguments.length) {
-    return new LensImpl(arguments[0], arguments[1]);
-  } else {
-    return lens(t => t, v => _ => v);
-  }
-}
+export const lens = <T>(): Lens<T, T> => lensImpl(t => t, v => _ => v);
