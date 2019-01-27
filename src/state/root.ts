@@ -56,6 +56,15 @@ export const getFittingWordsGetters = createSelector(
   },
 );
 
+export const getFittingWordsAtSlot = (state: RootState) => {
+  const slot = viewer.getSlotAtCursor(state.editor);
+  if (!slot) {
+    return [];
+  }
+  const getters = getFittingWordsGetters(state);
+  return getters[slot.id](state.editor.board.letters) || [];
+};
+
 export const getFittingWords = createSelector(
   (state: RootState) => getFittingWordsGetters(state),
   (state: RootState) => state.editor.board.letters,
