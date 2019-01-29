@@ -2,11 +2,12 @@ import keyBy from 'lodash/keyBy';
 import { createSelector } from 'reselect';
 
 import { emptyUndoHistory, UndoHistory } from 'lib/getHistoryMiddleware';
-import { lens } from 'lib/lens';
+import { lens, Setter } from 'lib/lens';
 import * as dictionary from 'state/dictionary';
 import { getSlots } from 'state/shape';
 import * as viewer from 'state/viewer';
-import { mapValues } from 'util/objects';
+import { mapValues, minKey } from 'util/objects';
+import { Slot } from 'lib/crossword/Types';
 
 export interface RootState {
   dictionary: dictionary.DictionaryState;
@@ -24,6 +25,7 @@ const l = lens<RootState>();
 const editorL = l.k('editor');
 
 export const L = {
+  ...l,
   dictionary: l.k('dictionary'),
   editor: {
     ...editorL,
@@ -31,6 +33,33 @@ export const L = {
     shape: editorL.k('shape'),
   },
   editorHistory: l.k('editorHistory'),
+};
+
+export const fillWordAtSlot = (word: string, slot: Slot): Setter<RootState> => state => {
+  const lettersCopy = [ ...state.editor.board.letters ];
+  slot.cells.forEach((cell, i) => {
+    lettersCopy[cell] = word.substr(i, 1);
+  });
+  const newState = L.editor.board.k('letters').set(lettersCopy)(state);
+  const fittingWords = getFittingWords(newState);
+  const keyOfLeastFittingWords = minKey(fittingWords, words => {
+    if (!words) {
+      return Infinity;
+    }
+    return words.length;
+  });
+
+  let { cursor, direction } = state.editor.board;
+  if (keyOfLeastFittingWords) {
+    const slots = getSlots(state.editor.shape);
+    const leastFittingSlot = slots.find(slot => slot.id === keyOfLeastFittingWords);
+    if (leastFittingSlot) {
+      cursor = leastFittingSlot.cells[0];
+      direction = leastFittingSlot.direction;
+    }
+  }
+
+  return L.editor.board.set(board => ({ ...board, cursor, direction }))(newState);
 };
 
 export const getFittingWordsGetters = createSelector(

@@ -6,7 +6,7 @@ import { createSelector } from 'reselect';
 import { Constraints, ClosedSet } from 'lib/crossword/Types';
 import { injectStore } from 'lib/react-store';
 import ThreadPool, { Thread } from 'lib/ThreadPool';
-import { getFittingWords, RootState, getFittingWordsAtSlot } from 'state/root';
+import { getFittingWords, RootState, getFittingWordsAtSlot, L, fillWordAtSlot } from 'state/root';
 import { getSlots } from 'state/shape';
 import { getClosedSet, getSlotAtCursor } from 'state/viewer';
 import { ContainerProps, mapStoreToContainerProps } from './container';
@@ -148,16 +148,32 @@ class EditorFillContainer extends React.Component<ContainerProps, EditorFillCont
     });
   };
 
+  onDoubleClick: React.MouseEventHandler<HTMLElement> = e => {
+    const slot = getSlotAtCursor(this.props.editor);
+    const word = e.currentTarget.getAttribute('data-word');
+    if (!slot || !word) {
+      return;
+    }
+    this.props.update(L.set(fillWordAtSlot(word, slot)));
+  };
+
   render() {
     const fittingWordsAtSlot = getFittingWordsAtSlot(this.props);
+    const { evaluations } = this.state;
     return (
       <div>
         <div>Fill</div>
         <table>
           <tbody>
             {fittingWordsAtSlot.slice(0, 100).map(word => (
-              <tr key={word} tabIndex={0}>
-                <td>{this.state.evaluations[word] && this.state.evaluations[word].status}</td>
+              <tr
+                key={word}
+                tabIndex={0}
+                data-word={word}
+                onDoubleClick={this.onDoubleClick}
+                className={`row row--${evaluations[word] && evaluations[word].status}`}
+              >
+                <td>{evaluations[word] && evaluations[word].status}</td>
                 <td>{word}</td>
               </tr>
             ))}
