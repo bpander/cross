@@ -1,0 +1,14 @@
+{
+  "main.css": "https://bpander.github.io/cross/build/static/css/main.bc16f554.chunk.css",
+  "main.js": "https://bpander.github.io/cross/build/static/js/main.db5c2235.chunk.js",
+  "main.js.map": "https://bpander.github.io/cross/build/static/js/main.db5c2235.chunk.js.map",
+  "static/js/1.d186adc0.chunk.js": "https://bpander.github.io/cross/build/static/js/1.d186adc0.chunk.js",
+  "static/js/1.d186adc0.chunk.js.map": "https://bpander.github.io/cross/build/static/js/1.d186adc0.chunk.js.map",
+  "runtime~main.js": "https://bpander.github.io/cross/build/static/js/runtime~main.5045f912.js",
+  "runtime~main.js.map": "https://bpander.github.io/cross/build/static/js/runtime~main.5045f912.js.map",
+  "static/media/default.dict": "https://bpander.github.io/cross/build/static/media/default.cd6fac4a.dict",
+  "static/css/main.bc16f554.chunk.css.map": "https://bpander.github.io/cross/build/static/css/main.bc16f554.chunk.css.map",
+  "index.html": "https://bpander.github.io/cross/build/index.html",
+  "precache-manifest.dada0c26092aa4ee9dcc68ba2483bd60.js": "https://bpander.github.io/cross/build/precache-manifest.dada0c26092aa4ee9dcc68ba2483bd60.js",
+  "service-worker.js": "https://bpander.github.io/cross/build/service-worker.js"
+}
