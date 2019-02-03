@@ -3,10 +3,10 @@
 import React from 'react';
 import { createSelector } from 'reselect';
 
-import { Constraints, ClosedSet } from 'lib/crossword/Types';
+import { ClosedSet, Constraints } from 'lib/crossword/Types';
 import { injectStore } from 'lib/react-store';
 import ThreadPool, { Thread } from 'lib/ThreadPool';
-import { getFittingWords, RootState, getFittingWordsAtSlot, L, fillWordAtSlot } from 'state/root';
+import { fillWordAtSlot, getFittingWords, getFittingWordsAtSlot, L, RootState, setCursorAtBestSlot } from 'state/root';
 import { getSlots } from 'state/shape';
 import { getClosedSet, getSlotAtCursor } from 'state/viewer';
 import { ContainerProps, mapStoreToContainerProps } from './container';
@@ -86,6 +86,10 @@ class EditorFillContainer extends React.Component<ContainerProps, EditorFillCont
     this.threadPool.killAll();
   }
 
+  onBestThingyClick = () => {
+    this.props.update(L.set(setCursorAtBestSlot));
+  };
+
   onThreadCreated = (thread: Thread<string>) => {
     thread.worker.postMessage({
       type: 'prepare',
@@ -163,6 +167,9 @@ class EditorFillContainer extends React.Component<ContainerProps, EditorFillCont
     return (
       <div>
         <div>Fill</div>
+        <button onClick={this.onBestThingyClick}>
+          Best thingy
+        </button>
         <table>
           <tbody>
             {fittingWordsAtSlot.slice(0, 100).map(word => (

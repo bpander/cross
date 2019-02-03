@@ -1,13 +1,14 @@
 import keyBy from 'lodash/keyBy';
 import { createSelector } from 'reselect';
 
+import { compose } from 'lib/createStore';
+import { Slot } from 'lib/crossword/Types';
 import { emptyUndoHistory, UndoHistory } from 'lib/getHistoryMiddleware';
 import { lens, Setter } from 'lib/lens';
 import * as dictionary from 'state/dictionary';
 import { getSlots } from 'state/shape';
 import * as viewer from 'state/viewer';
 import { mapValues, minKey } from 'util/objects';
-import { Slot } from 'lib/crossword/Types';
 
 export interface RootState {
   dictionary: dictionary.DictionaryState;
@@ -33,33 +34,6 @@ export const L = {
     shape: editorL.k('shape'),
   },
   editorHistory: l.k('editorHistory'),
-};
-
-export const fillWordAtSlot = (word: string, slot: Slot): Setter<RootState> => state => {
-  const lettersCopy = [ ...state.editor.board.letters ];
-  slot.cells.forEach((cell, i) => {
-    lettersCopy[cell] = word.substr(i, 1);
-  });
-  const newState = L.editor.board.k('letters').set(lettersCopy)(state);
-  const fittingWords = getFittingWords(newState);
-  const keyOfLeastFittingWords = minKey(fittingWords, words => {
-    if (!words) {
-      return Infinity;
-    }
-    return words.length;
-  });
-
-  let { cursor, direction } = state.editor.board;
-  if (keyOfLeastFittingWords) {
-    const slots = getSlots(state.editor.shape);
-    const leastFittingSlot = slots.find(slot => slot.id === keyOfLeastFittingWords);
-    if (leastFittingSlot) {
-      cursor = leastFittingSlot.cells[0];
-      direction = leastFittingSlot.direction;
-    }
-  }
-
-  return L.editor.board.set(board => ({ ...board, cursor, direction }))(newState);
 };
 
 export const getFittingWordsGetters = createSelector(
@@ -99,3 +73,40 @@ export const getFittingWords = createSelector(
   (state: RootState) => state.editor.board.letters,
   (getters, letters) => mapValues(getters, getter => getter(letters)),
 );
+
+export const setCursorAtBestSlot: Setter<RootState> = state => {
+  const fittingWords = getFittingWords(state);
+  const keyOfLeastFittingWords = minKey(fittingWords, words => {
+    if (!words) {
+      return Infinity;
+    }
+    return words.length;
+  });
+
+  let { cursor, direction } = state.editor.board;
+  if (keyOfLeastFittingWords) {
+    const slots = getSlots(state.editor.shape);
+    const leastFittingSlot = slots.find(slot => slot.id === keyOfLeastFittingWords);
+    if (leastFittingSlot) {
+      cursor = leastFittingSlot.cells[0];
+      direction = leastFittingSlot.direction;
+    }
+  }
+
+  return compose(
+    L.editor.board.k('cursor').set(cursor),
+    L.editor.board.k('direction').set(direction),
+  )(state);
+};
+
+export const fillWordAtSlot = (word: string, slot: Slot): Setter<RootState> => state => {
+  const lettersCopy = [ ...state.editor.board.letters ];
+  slot.cells.forEach((cell, i) => {
+    lettersCopy[cell] = word.substr(i, 1);
+  });
+
+  return compose(
+    setCursorAtBestSlot,
+    L.editor.board.k('letters').set(lettersCopy),
+  )(state);
+};
